@@ -1,0 +1,35 @@
+name: Build
+
+on: [workflow_dispatch]
+
+jobs:
+  build_cli:
+    name: Build CLI
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-2022, macos-12]
+        arch: [amd64]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          cache: true
+
+      - name: Update Go modules
+        run: go mod download -json
+
+      - name: Build CLI
+        run: go build -trimpath -o ./bin/cpm$(go env GOEXE)
+        env:
+          GOARCH: ${{ matrix.arch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: cpm-${{ matrix.os }}-${{ matrix.arch }}
+          path: ./bin/cpm*
+          if-no-files-found: error
