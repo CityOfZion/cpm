@@ -9,6 +9,11 @@ cpm -h
 
 `cpm.json` is your project configuration file. Have a look or read more about it [here](docs/config.md).
 
+# Build from source
+```shell
+go get
+```
+
 ## Example commands
 
 ### Download all contracts listed in `cpm.json`
