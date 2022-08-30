@@ -385,6 +385,8 @@ func generateSDK(m *manifest.Manifest, scriptHash util.Uint160, language string)
 		err = generators.GenerateJavaSDK(&cfg)
 	} else if language == LANG_CSHARP {
 		err = generators.GenerateCsharpSDK(&cfg)
+	} else if language == LANG_GO {
+		err = generators.GenerateGoSDK(&cfg)
 	} else {
 		log.Fatalf("%s is unsupported", language)
 	}
