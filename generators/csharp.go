@@ -64,7 +64,8 @@ func GenerateCsharpSDK(cfg *GenerateCfg) error {
 		return err
 	}
 
-	log.Infof("Created SDK for contract '%s' at %s/java/io/coz/cpm/ with contract hash 0x%s", cfg.Manifest.Name, wd, cfg.ContractHash.StringLE())
+	sdkLocation := wd + "/csharp/" + upperFirst(cfg.Manifest.Name) + ".cs"
+	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
 
 	return nil
 }

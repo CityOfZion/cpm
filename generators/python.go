@@ -44,15 +44,8 @@ class {{ .ContractName }}:
 {{end}}`
 
 func GeneratePythonSDK(cfg *GenerateCfg) error {
-	wd, err := os.Getwd()
-
-	err = createPythonPackage(cfg)
+	err := createPythonPackage(cfg)
 	defer cfg.ContractOutput.Close()
-	if err != nil {
-		return err
-	}
-
-	wdContract, err := os.Getwd()
 	if err != nil {
 		return err
 	}
@@ -72,24 +65,26 @@ func GeneratePythonSDK(cfg *GenerateCfg) error {
 		log.Fatal(err)
 	}
 
-	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, wdContract, cfg.ContractHash.StringLE())
-
-	// change dir back to project root
-	os.Chdir(wd)
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	sdkLocation := wd + "/python/" + upperFirst(cfg.Manifest.Name)
+	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
 
 	return nil
 }
 
 // create the Python package structure and set the ContractOutput to the open file handle
 func createPythonPackage(cfg *GenerateCfg) error {
-	err := os.Mkdir(cfg.Manifest.Name, 0755)
+	baseDir := "python/"
+	sdkDir := baseDir + cfg.Manifest.Name
+	err := os.MkdirAll(sdkDir, 0755)
 	if err != nil {
-		return fmt.Errorf("can't create directory %s: %w", cfg.Manifest.Name, err)
+		return fmt.Errorf("can't create directory %s: %w", sdkDir, err)
 	}
 
-	_ = os.Chdir(cfg.Manifest.Name)
-
-	f, err := os.Create("__init__.py")
+	f, err := os.Create(sdkDir + "/__init__.py")
 	if err != nil {
 		f.Close()
 		return fmt.Errorf("can't create __init__.py file: %w", err)
@@ -98,7 +93,7 @@ func createPythonPackage(cfg *GenerateCfg) error {
 		f.Close()
 	}
 
-	f, err = os.Create("contract.py")
+	f, err = os.Create(sdkDir + "/contract.py")
 	if err != nil {
 		f.Close()
 		return fmt.Errorf("can't create contract.py file: %w", err)

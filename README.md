@@ -12,7 +12,7 @@ cpm -h
 ## Example commands
 
 ### Download all contracts listed in `cpm.json`
-Note that only `neo-express` is supported as destination chain. An [issue](https://github.com/nspcc-dev/neo-go/issues/2406) for `neo-go` to add support (go vote!).
+Note that only `neo-express` is supported as destination chain. An [issue](https://github.com/nspcc-dev/neo-go/issues/2406) for `neo-go` to add support exists (go vote!).
 
 ```shell
 cpm --log-level DEBUG run 
@@ -29,4 +29,4 @@ cpm download manifest -c 0x4380f2c1de98bb267d3ea821897ec571a04fe3e0 -N https://m
 cpm generate -m samplecontract.manifest.json -l python
 cpm generate -m samplecontract.manifest.json -l go
 ```
-Note: the name from the manifest is used as output name
+Note: the SDKs are placed in a language specific folder i.e. `/python/<contract>` or `/golang/<contract>`
