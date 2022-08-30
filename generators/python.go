@@ -3,18 +3,12 @@ package generators
 import (
 	"fmt"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
-	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
-	"github.com/nspcc-dev/neo-go/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"os"
-	"strconv"
-	"strings"
 	"text/template"
 )
 
 /*
-	Big chunks of code gracefully borrowed from neo-go <3 with some adjustments
-
 	Creates a Python SDK that can be easily used when writing smart contracts with neo3-boa.
 	The output is a Python package. For example for a contract named `samplecontract` it results in the folder structure
 		.
@@ -28,35 +22,7 @@ import (
 		Samplecontract.func1()
 */
 
-type (
-	PythonGenerateCfg struct {
-		Manifest       *manifest.Manifest
-		ContractHash   util.Uint160
-		ContractOutput *os.File
-	}
-
-	contractTmpl struct {
-		ContractName string
-		Imports      []string
-		Hash         string
-		Methods      []methodTmpl
-	}
-
-	methodTmpl struct {
-		Name       string
-		NameABI    string
-		Comment    string
-		Arguments  []paramTmpl
-		ReturnType string
-	}
-
-	paramTmpl struct {
-		Name string
-		Type string
-	}
-)
-
-const srcTmpl = `
+const pythonSrcTmpl = `
 {{- define "METHOD" }}
     @staticmethod
     def {{.Name}}({{range $index, $arg := .Arguments -}}
@@ -77,10 +43,10 @@ class {{ .ContractName }}:
 {{ template "METHOD" $m -}}
 {{end}}`
 
-func GeneratePythonSDK(cfg *PythonGenerateCfg) error {
+func GeneratePythonSDK(cfg *GenerateCfg) error {
 	wd, err := os.Getwd()
 
-	err = createSDKPackage(cfg)
+	err = createPythonPackage(cfg)
 	defer cfg.ContractOutput.Close()
 	if err != nil {
 		return err
@@ -91,12 +57,12 @@ func GeneratePythonSDK(cfg *PythonGenerateCfg) error {
 		return err
 	}
 
-	ctr, err := templateFromManifest(cfg)
+	ctr, err := templateFromManifest(cfg, scTypeToPython)
 	if err != nil {
 		return err
 	}
 
-	tmp, err := template.New("generate").Parse(srcTmpl)
+	tmp, err := template.New("generate").Parse(pythonSrcTmpl)
 	if err != nil {
 		return err
 	}
@@ -114,58 +80,8 @@ func GeneratePythonSDK(cfg *PythonGenerateCfg) error {
 	return nil
 }
 
-func templateFromManifest(cfg *PythonGenerateCfg) (contractTmpl, error) {
-	ctr := contractTmpl{
-		ContractName: upperFirst(cfg.Manifest.Name),
-		Hash:         "0x" + cfg.ContractHash.StringLE(),
-	}
-
-	seen := make(map[string]bool)
-	for _, method := range cfg.Manifest.ABI.Methods {
-		seen[method.Name] = false
-	}
-
-	for _, method := range cfg.Manifest.ABI.Methods {
-		if method.Name[0] == '_' {
-			continue
-		}
-
-		name := method.Name
-		if v, ok := seen[name]; !ok || v {
-			suffix := strconv.Itoa(len(method.Parameters))
-			for ; seen[name]; name = method.Name + suffix {
-				suffix = "_" + suffix
-			}
-		}
-		seen[name] = true
-
-		mtd := methodTmpl{
-			Name:    name,
-			NameABI: method.Name,
-			Comment: fmt.Sprintf("invokes `%s` method of contract.", method.Name),
-		}
-
-		for i := range method.Parameters {
-			name := method.Parameters[i].Name
-			if name == "" {
-				name = fmt.Sprintf("arg%d", i)
-			}
-
-			var typeStr = scTypeToPython(method.Parameters[i].Type)
-
-			mtd.Arguments = append(mtd.Arguments, paramTmpl{
-				Name: name,
-				Type: typeStr,
-			})
-		}
-		mtd.ReturnType = scTypeToPython(method.ReturnType)
-		ctr.Methods = append(ctr.Methods, mtd)
-	}
-	return ctr, nil
-}
-
 // create the Python package structure and set the ContractOutput to the open file handle
-func createSDKPackage(cfg *PythonGenerateCfg) error {
+func createPythonPackage(cfg *GenerateCfg) error {
 	err := os.Mkdir(cfg.Manifest.Name, 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", cfg.Manifest.Name, err)
@@ -219,8 +135,4 @@ func scTypeToPython(typ smartcontract.ParamType) string {
 	default:
 		panic(fmt.Sprintf("unknown type: %T %s", typ, typ))
 	}
-}
-
-func upperFirst(s string) string {
-	return strings.ToUpper(s[0:1]) + s[1:]
 }

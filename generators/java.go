@@ -1,0 +1,119 @@
+package generators
+
+import (
+	"fmt"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
+	log "github.com/sirupsen/logrus"
+	"os"
+	"strings"
+	"text/template"
+)
+
+const javaSrcTmpl = `
+{{- define "METHOD" }}
+    public native {{.ReturnType }} {{.Name}}({{range $index, $arg := .Arguments -}}
+       {{- if ne $index 0}}, {{end}}
+          {{- .Type}} {{.Name}}
+       {{- end}});
+{{- end -}}
+package io.coz.cpm
+
+import io.neow3j.devpack.*;
+import io.neow3j.devpack.contracts.ContractInterface;
+
+
+public class {{ .ContractName }} extends ContractInterface {
+
+    static final String {{ .ContractName }}ScriptHash = "{{.Hash}}";
+
+    public {{ .ContractName }}() {
+       super({{ .ContractName }}ScriptHash);
+    }
+
+{{- range $m := .Methods}}
+{{ template "METHOD" $m -}}
+{{end}}
+}
+`
+
+func GenerateJavaSDK(cfg *GenerateCfg) error {
+	err := createJavaPackage(cfg)
+	defer cfg.ContractOutput.Close()
+	if err != nil {
+		return err
+	}
+
+	ctr, err := templateFromManifest(cfg, scTypeToJava)
+	if err != nil {
+		return err
+	}
+	ctr.Hash = strings.TrimPrefix(ctr.Hash, "0x")
+
+	tmp, err := template.New("generate").Parse(javaSrcTmpl)
+	if err != nil {
+		return err
+	}
+
+	err = tmp.Execute(cfg.ContractOutput, ctr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Created SDK for contract '%s' at %s/java/io/coz/cpm/ with contract hash 0x%s", cfg.Manifest.Name, wd, cfg.ContractHash.StringLE())
+
+	return nil
+}
+
+func createJavaPackage(cfg *GenerateCfg) error {
+	err := os.MkdirAll("java/io/coz/cpm/", 0755)
+	if err != nil {
+		return fmt.Errorf("can't create directory %s: %w", cfg.Manifest.Name, err)
+	}
+
+	filename := upperFirst(cfg.Manifest.Name)
+	f, err := os.Create(fmt.Sprintf("java/io/coz/cpm/%s.cs", filename))
+	if err != nil {
+		f.Close()
+		return fmt.Errorf("can't create %s.java file: %w", filename, err)
+	} else {
+		cfg.ContractOutput = f
+	}
+
+	return nil
+}
+
+func scTypeToJava(typ smartcontract.ParamType) string {
+	switch typ {
+	case smartcontract.AnyType:
+		return "Object"
+	case smartcontract.BoolType:
+		return "boolean"
+	case smartcontract.InteropInterfaceType:
+		return "Object"
+	case smartcontract.IntegerType:
+		return "int"
+	case smartcontract.ByteArrayType:
+		return "ByteString"
+	case smartcontract.StringType:
+		return "String"
+	case smartcontract.Hash160Type:
+		return "Hash160"
+	case smartcontract.Hash256Type:
+		return "Hash256"
+	case smartcontract.PublicKeyType:
+		return "ECPoint"
+	case smartcontract.ArrayType:
+		return "List<Object>"
+	case smartcontract.MapType:
+		return "Map<Object, Object>"
+	case smartcontract.VoidType:
+		return "void"
+	default:
+		panic(fmt.Sprintf("unknown type: %T %s", typ, typ))
+	}
+}

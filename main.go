@@ -21,6 +21,8 @@ var (
 
 	LANG_GO     = "go"
 	LANG_PYTHON = "python"
+	LANG_JAVA   = "java"
+	LANG_CSHARP = "csharp"
 
 	LOG_INFO  = "INFO"
 	LOG_DEBUG = "DEBUG"
@@ -112,7 +114,7 @@ func main() {
 						Usage:    "SDK output language",
 						Required: true, // TODO: figure out why this is not working
 						Value: &EnumValue{
-							Enum: []string{LANG_GO, LANG_PYTHON},
+							Enum: []string{LANG_GO, LANG_PYTHON, LANG_JAVA, LANG_CSHARP},
 						},
 					},
 				},
@@ -371,17 +373,24 @@ func readManifest(filename string) (*manifest.Manifest, []byte, error) {
 }
 
 func generateSDK(m *manifest.Manifest, scriptHash util.Uint160, language string) error {
+	cfg := generators.GenerateCfg{
+		Manifest:     m,
+		ContractHash: scriptHash,
+	}
+
+	var err error
 	if language == LANG_PYTHON {
-		cfg := generators.PythonGenerateCfg{
-			Manifest:     m,
-			ContractHash: scriptHash,
-		}
-		err := generators.GeneratePythonSDK(&cfg)
-		if err != nil {
-			return err
-		}
+		err = generators.GeneratePythonSDK(&cfg)
+	} else if language == LANG_JAVA {
+		err = generators.GenerateJavaSDK(&cfg)
+	} else if language == LANG_CSHARP {
+		err = generators.GenerateCsharpSDK(&cfg)
 	} else {
 		log.Fatalf("%s is unsupported", language)
+	}
+
+	if err != nil {
+		return err
 	}
 	return nil
 }
