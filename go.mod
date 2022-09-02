@@ -15,6 +15,7 @@ require (
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/nspcc-dev/go-ordered-json v0.0.0-20220111165707-25110be27d22 // indirect
 	github.com/nspcc-dev/rfc6979 v0.2.0 // indirect

@@ -14,9 +14,11 @@ import (
 
 type (
 	GenerateCfg struct {
-		Manifest       *manifest.Manifest
-		ContractHash   util.Uint160
-		ContractOutput *os.File
+		Manifest            *manifest.Manifest
+		ContractHash        util.Uint160
+		ContractOutput      *os.File
+		ParamTypeConverter  convertParam
+		MethodNameConverter func(s string) string
 	}
 
 	contractTmpl struct {
@@ -42,7 +44,7 @@ type (
 	convertParam func(typ smartcontract.ParamType) string
 )
 
-func templateFromManifest(cfg *GenerateCfg, scTypeToLang convertParam) (contractTmpl, error) {
+func templateFromManifest(cfg *GenerateCfg) (contractTmpl, error) {
 	ctr := contractTmpl{
 		ContractName: upperFirst(cfg.Manifest.Name),
 		Hash:         "0x" + cfg.ContractHash.StringLE(),
@@ -68,7 +70,7 @@ func templateFromManifest(cfg *GenerateCfg, scTypeToLang convertParam) (contract
 		seen[name] = true
 
 		mtd := methodTmpl{
-			Name:    name,
+			Name:    cfg.MethodNameConverter(name),
 			NameABI: method.Name,
 			Comment: fmt.Sprintf("invokes `%s` method of contract.", method.Name),
 		}
@@ -79,14 +81,14 @@ func templateFromManifest(cfg *GenerateCfg, scTypeToLang convertParam) (contract
 				name = fmt.Sprintf("arg%d", i)
 			}
 
-			var typeStr = scTypeToLang(method.Parameters[i].Type)
+			var typeStr = cfg.ParamTypeConverter(method.Parameters[i].Type)
 
 			mtd.Arguments = append(mtd.Arguments, paramTmpl{
 				Name: name,
 				Type: typeStr,
 			})
 		}
-		mtd.ReturnType = scTypeToLang(method.ReturnType)
+		mtd.ReturnType = cfg.ParamTypeConverter(method.ReturnType)
 		ctr.Methods = append(ctr.Methods, mtd)
 	}
 	return ctr, nil

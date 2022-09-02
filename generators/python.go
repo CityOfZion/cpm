@@ -2,6 +2,7 @@ package generators
 
 import (
 	"fmt"
+	"github.com/iancoleman/strcase"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -49,7 +50,9 @@ func GeneratePythonSDK(cfg *GenerateCfg) error {
 		return err
 	}
 
-	ctr, err := templateFromManifest(cfg, scTypeToPython)
+	cfg.MethodNameConverter = strcase.ToSnake
+	cfg.ParamTypeConverter = scTypeToPython
+	ctr, err := templateFromManifest(cfg)
 	if err != nil {
 		return err
 	}

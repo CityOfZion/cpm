@@ -2,6 +2,7 @@ package generators
 
 import (
 	"fmt"
+	"github.com/iancoleman/strcase"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -16,7 +17,7 @@ const javaSrcTmpl = `
           {{- .Type}} {{.Name}}
        {{- end}});
 {{- end -}}
-package io.coz.cpm
+package <REPLACE_ME>
 
 import io.neow3j.devpack.*;
 import io.neow3j.devpack.contracts.ContractInterface;
@@ -24,10 +25,10 @@ import io.neow3j.devpack.contracts.ContractInterface;
 
 public class {{ .ContractName }} extends ContractInterface {
 
-    static final String {{ .ContractName }}ScriptHash = "{{.Hash}}";
+    static final String scriptHash = "{{.Hash}}";
 
     public {{ .ContractName }}() {
-       super({{ .ContractName }}ScriptHash);
+       super(scriptHash);
     }
 
 {{- range $m := .Methods}}
@@ -43,7 +44,9 @@ func GenerateJavaSDK(cfg *GenerateCfg) error {
 		return err
 	}
 
-	ctr, err := templateFromManifest(cfg, scTypeToJava)
+	cfg.MethodNameConverter = strcase.ToLowerCamel
+	cfg.ParamTypeConverter = scTypeToJava
+	ctr, err := templateFromManifest(cfg)
 	if err != nil {
 		return err
 	}
@@ -64,19 +67,19 @@ func GenerateJavaSDK(cfg *GenerateCfg) error {
 		return err
 	}
 
-	log.Infof("Created SDK for contract '%s' at %s/java/io/coz/cpm/ with contract hash 0x%s", cfg.Manifest.Name, wd, cfg.ContractHash.StringLE())
+	log.Infof("Created SDK for contract '%s' at %s/java/ with contract hash 0x%s", cfg.Manifest.Name, wd, cfg.ContractHash.StringLE())
 
 	return nil
 }
 
 func createJavaPackage(cfg *GenerateCfg) error {
-	err := os.MkdirAll("java/io/coz/cpm/", 0755)
+	err := os.Mkdir("java", 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", cfg.Manifest.Name, err)
 	}
 
 	filename := upperFirst(cfg.Manifest.Name)
-	f, err := os.Create(fmt.Sprintf("java/io/coz/cpm/%s.cs", filename))
+	f, err := os.Create(fmt.Sprintf("java/%s.java", filename))
 	if err != nil {
 		f.Close()
 		return fmt.Errorf("can't create %s.java file: %w", filename, err)
