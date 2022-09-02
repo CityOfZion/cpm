@@ -31,7 +31,6 @@ const pythonSrcTmpl = `
        {{- end}}) -> {{if .ReturnType }}{{ .ReturnType }}: {{ else }} None: {{ end }}
         pass
 {{- end -}}
-from boa3.builtin.interop.contract import call_contract
 from boa3.builtin.type import UInt160, UInt256, ECPoint
 from boa3.builtin import contract
 from typing import cast, Any

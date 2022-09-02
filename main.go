@@ -182,6 +182,7 @@ func handleCliRun(cCtx *cli.Context) error {
 							generateSuccess = true
 						}
 					}
+					break
 				}
 			}
 			if sdkOnly && *c.ContractGenerateSdk {
@@ -189,6 +190,8 @@ func handleCliRun(cCtx *cli.Context) error {
 				if err != nil {
 					log.Fatal(err)
 				}
+				generateSuccess = true
+				break
 			}
 		}
 
