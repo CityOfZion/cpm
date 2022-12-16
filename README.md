@@ -1,5 +1,10 @@
 # Installation
-Download the tool from the releases page and place it somewhere on your path
+Download the binary from the releases page and place it somewhere on your path, or 
+
+## OSX
+```shell
+brew install CityOfZion/tap/cpm
+```
 
 # Usage
 
