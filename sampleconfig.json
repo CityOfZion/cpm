@@ -22,7 +22,7 @@
     {
       "label": "Props - collection",
       "script-hash": "0xf05651bc505fd5c7d36593f6e8409932342f9085"
-    },
+    }
   ],
   "tools": {
     "neo-express":{
