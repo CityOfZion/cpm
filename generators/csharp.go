@@ -2,11 +2,12 @@ package generators
 
 import (
 	"fmt"
+	"os"
+	"text/template"
+
 	"github.com/iancoleman/strcase"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"text/template"
 )
 
 const csharpSrcTmpl = `
@@ -67,20 +68,21 @@ func GenerateCsharpSDK(cfg *GenerateCfg) error {
 		return err
 	}
 
-	sdkLocation := wd + "/csharp/" + upperFirst(cfg.Manifest.Name) + ".cs"
+	sdkLocation := wd + "/" + OutputRoot + "csharp/" + upperFirst(cfg.Manifest.Name) + ".cs"
 	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
 
 	return nil
 }
 
 func createCsharpPackage(cfg *GenerateCfg) error {
-	err := os.MkdirAll("csharp/cpm/", 0755)
+	dir := OutputRoot + "csharp/cpm/"
+	err := os.MkdirAll(dir, 0755)
 	if err != nil {
-		return fmt.Errorf("can't create directory %s: %w", cfg.Manifest.Name, err)
+		return fmt.Errorf("can't create directory %s: %w", dir, err)
 	}
 
 	filename := upperFirst(cfg.Manifest.Name)
-	f, err := os.Create(fmt.Sprintf("csharp/cpm/%s.cs", filename))
+	f, err := os.Create(fmt.Sprintf(dir+"%s.cs", filename))
 	if err != nil {
 		f.Close()
 		return fmt.Errorf("can't create %s.cs file: %w", filename, err)

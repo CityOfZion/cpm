@@ -2,13 +2,16 @@ package generators
 
 import (
 	"fmt"
-	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
-	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
-	"github.com/nspcc-dev/neo-go/pkg/util"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
+	"github.com/nspcc-dev/neo-go/pkg/util"
 )
+
+const OutputRoot = "cpm_out/"
 
 // Big chunks of code gracefully borrowed from neo-go <3 with some adjustments
 
