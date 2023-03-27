@@ -2,11 +2,12 @@ package generators
 
 import (
 	"fmt"
+	"os"
+	"text/template"
+
 	"github.com/iancoleman/strcase"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"text/template"
 )
 
 /*
@@ -33,7 +34,7 @@ const pythonSrcTmpl = `
         pass
 {{- end -}}
 from boa3.builtin.type import UInt160, UInt256, ECPoint
-from boa3.builtin import contract
+from boa3.builtin.compile_time import contract
 from typing import cast, Any
 
 
