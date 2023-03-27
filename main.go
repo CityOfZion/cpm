@@ -325,6 +325,9 @@ func handleCliGenerate(cCtx *cli.Context) error {
 	contractHash, _ := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
 
 	language := cCtx.String("l")
+	if language == "" {
+		log.Fatalf("must specify a target language using -l")
+	}
 	return generateSDK(m, contractHash, language)
 }
 
@@ -391,7 +394,7 @@ func generateSDK(m *manifest.Manifest, scriptHash util.Uint160, language string)
 	} else if language == LANG_GO {
 		err = generators.GenerateGoSDK(&cfg)
 	} else {
-		log.Fatalf("%s is unsupported", language)
+		log.Fatalf("language '%s' is unsupported", language)
 	}
 
 	if err != nil {
