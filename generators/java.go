@@ -2,12 +2,13 @@ package generators
 
 import (
 	"fmt"
-	"github.com/iancoleman/strcase"
-	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strings"
 	"text/template"
+
+	"github.com/iancoleman/strcase"
+	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
+	log "github.com/sirupsen/logrus"
 )
 
 const javaSrcTmpl = `
@@ -67,19 +68,20 @@ func GenerateJavaSDK(cfg *GenerateCfg) error {
 		return err
 	}
 
-	log.Infof("Created SDK for contract '%s' at %s/java/ with contract hash 0x%s", cfg.Manifest.Name, wd, cfg.ContractHash.StringLE())
+	log.Infof("Created SDK for contract '%s' at %sjava/ with contract hash 0x%s", cfg.Manifest.Name, wd+"/"+OutputRoot, cfg.ContractHash.StringLE())
 
 	return nil
 }
 
 func createJavaPackage(cfg *GenerateCfg) error {
-	err := os.Mkdir("java", 0755)
+	dir := OutputRoot + "java/"
+	err := os.MkdirAll(dir, 0755)
 	if err != nil {
-		return fmt.Errorf("can't create directory %s: %w", cfg.Manifest.Name, err)
+		return fmt.Errorf("can't create directory %s: %w", dir, err)
 	}
 
 	filename := upperFirst(cfg.Manifest.Name)
-	f, err := os.Create(fmt.Sprintf("java/%s.java", filename))
+	f, err := os.Create(fmt.Sprintf(dir+"%s.java", filename))
 	if err != nil {
 		f.Close()
 		return fmt.Errorf("can't create %s.java file: %w", filename, err)

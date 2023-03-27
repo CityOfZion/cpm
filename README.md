@@ -34,4 +34,4 @@ cpm download manifest -c 0x4380f2c1de98bb267d3ea821897ec571a04fe3e0 -N https://m
 cpm generate -m samplecontract.manifest.json -l python
 cpm generate -m samplecontract.manifest.json -l go
 ```
-Note: the SDKs are placed in a language specific folder i.e. `/python/<contract>` or `/golang/<contract>`
+Note: all the SDKs are placed in `/cpm_out/` under a language specific folder i.e. `/cpm_out/python/<contract>` or `/cpm_out/golang/<contract>`

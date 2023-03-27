@@ -72,7 +72,7 @@ func GeneratePythonSDK(cfg *GenerateCfg) error {
 	if err != nil {
 		return err
 	}
-	sdkLocation := wd + "/python/" + upperFirst(cfg.Manifest.Name)
+	sdkLocation := wd + "/" + OutputRoot + "python/" + upperFirst(cfg.Manifest.Name)
 	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
 
 	return nil
@@ -80,7 +80,7 @@ func GeneratePythonSDK(cfg *GenerateCfg) error {
 
 // create the Python package structure and set the ContractOutput to the open file handle
 func createPythonPackage(cfg *GenerateCfg) error {
-	baseDir := "python/"
+	baseDir := OutputRoot + "python/"
 	sdkDir := baseDir + cfg.Manifest.Name
 	err := os.MkdirAll(sdkDir, 0755)
 	if err != nil {
