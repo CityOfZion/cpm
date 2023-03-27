@@ -91,10 +91,8 @@ func createPythonPackage(cfg *GenerateCfg) error {
 	if err != nil {
 		f.Close()
 		return fmt.Errorf("can't create __init__.py file: %w", err)
-	} else {
-		f.WriteString(fmt.Sprintf("from .contract import %s\n", upperFirst(cfg.Manifest.Name)))
-		f.Close()
 	}
+	f.Close()
 
 	f, err = os.Create(sdkDir + "/contract.py")
 	if err != nil {
