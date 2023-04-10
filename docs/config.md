@@ -21,7 +21,7 @@ It has 4 major sections which will be described in detail later on
 
 # tools
 Currently `neo-express` is the only tool that supports downloading contracts. An [issue](https://github.com/nspcc-dev/neo-go/issues/2406) exists for `neo-go` to add download support.
-For SDK generation `python` is the only supported tool, but does not require a configuration section as it is part of the `cpm` package itself. Go-lang SDK generation exists but is still to be integrated.
+For SDK generation `C#`, `Java`, `Golang` and `Python` are supported.
 
 Each tool must specify the following 2 keys
 * `canGenerateSDK` - indicates if the tool can be used for generating SDKs. Must be a bool value.
