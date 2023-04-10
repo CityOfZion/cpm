@@ -11,7 +11,7 @@ It has 4 major sections which will be described in detail later on
 * `contract-source-network` - describes which network is the source for downloading contracts from. Valid values are [networks.label](#Networks)s.
 * `contract-destination` - describe where the downloaded contract should be persisted. Valid values are [contract-destination](#contract-destination) keys.
 * `contract-generate-sdk` - set to `true` to generate SDKs based on the contract manifest that can be consumed in your smart contract.
-* `sdk-language` - the target language to generate the SDK in. Valid values: `python`.
+* `sdk-language` - the target language to generate the SDK in. Valid values: `csharp`, `go`, `java` and `python`.
 
 # contracts
 * `label` - a user defined label to identify the target contract in the config. Must be a string. Not used elsewhere.
