@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cpm/generators"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -16,18 +17,32 @@ var defaultConfig []byte
 var cfg CPMConfig
 
 type ContractConfig struct {
-	Label               string       `json:"label"`
-	ScriptHash          util.Uint160 `json:"script-hash"`
-	SourceNetwork       *string      `json:"source-network,omitempty"`
-	ContractGenerateSdk *bool        `json:"contract-generate-sdk,omitempty"`
+	Label               string           `json:"label"`
+	ScriptHash          util.Uint160     `json:"script-hash"`
+	SourceNetwork       *string          `json:"source-network,omitempty"`
+	ContractGenerateSdk *bool            `json:"contract-generate-sdk,omitempty"`
+	SdkDestinations     *SdkDestinations `json:"sdk-destinations"`
+}
+
+type SdkDestinations struct {
+	OnChain SdkDestination `json:"onchain"`
+	//OffChain SdkDestination `json:"offchain"`
+}
+
+type SdkDestination struct {
+	Csharp *string `json:"csharp"`
+	Golang *string `json:"golang"`
+	Java   *string `json:"java"`
+	Python *string `json:"python"`
 }
 
 type CPMConfig struct {
 	Defaults struct {
-		ContractSourceNetwork string `json:"contract-source-network"`
-		ContractDestination   string `json:"contract-destination"`
-		ContractGenerateSdk   bool   `json:"contract-generate-sdk"`
-		SdkLanguage           string `json:"sdk-language"`
+		ContractSourceNetwork string           `json:"contract-source-network"`
+		ContractDestination   string           `json:"contract-destination"`
+		ContractGenerateSdk   bool             `json:"contract-generate-sdk"`
+		SdkLanguage           string           `json:"sdk-language"`
+		SdkDestinations       *SdkDestinations `json:"sdk-destinations"`
 	} `json:"defaults"`
 	Contracts []ContractConfig `json:"contracts"`
 	Tools     struct {
@@ -91,6 +106,38 @@ func (c *CPMConfig) getHosts(networkLabel string) []string {
 	}
 	log.Fatalf("Could not find hosts for label: %s", networkLabel)
 	return nil
+}
+
+func (c *CPMConfig) getSdkDestination(forLanguage string) string {
+	if c.Defaults.SdkDestinations == nil {
+		return generators.OutputRoot + forLanguage + "/"
+	}
+
+	defaultLocation := generators.OutputRoot + forLanguage + "/"
+	switch forLanguage {
+	case LANG_PYTHON:
+		if path := c.Defaults.SdkDestinations.OnChain.Python; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	case LANG_GO:
+		if path := c.Defaults.SdkDestinations.OnChain.Golang; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	case LANG_JAVA:
+		if path := c.Defaults.SdkDestinations.OnChain.Java; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	case LANG_CSHARP:
+		if path := c.Defaults.SdkDestinations.OnChain.Csharp; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	default:
+		return defaultLocation
+	}
 }
 
 type EnumValue struct {
