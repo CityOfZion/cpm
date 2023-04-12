@@ -12,11 +12,11 @@ brew install CityOfZion/tap/cpm
 cpm -h
 ```
 
-`cpm.json` is your project configuration file. Have a look or read more about it [here](docs/config.md).
+`cpm.yaml` is your project configuration file. Have a look or read more about it [here](docs/config.md).
 
 ## Example commands
 
-### Download all contracts listed in `cpm.json`
+### Download all contracts listed in `cpm.yaml`
 Note that only `neo-express` is supported as destination chain. An [issue](https://github.com/nspcc-dev/neo-go/issues/2406) for `neo-go` to add support exists (go vote!).
 
 ```shell
