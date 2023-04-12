@@ -2,46 +2,46 @@ package main
 
 import (
 	_ "embed"
-	"encoding/json"
 	"fmt"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"strings"
 )
 
-//go:embed sampleconfig.json
+//go:embed cpm.yaml.default
 var defaultConfig []byte
 var cfg CPMConfig
 
 type ContractConfig struct {
-	Label               string       `json:"label"`
-	ScriptHash          util.Uint160 `json:"script-hash"`
-	SourceNetwork       *string      `json:"source-network,omitempty"`
-	ContractGenerateSdk *bool        `json:"contract-generate-sdk,omitempty"`
+	Label               string       `yaml:"label"`
+	ScriptHash          util.Uint160 `yaml:"script-hash"`
+	SourceNetwork       *string      `yaml:"source-network,omitempty"`
+	ContractGenerateSdk *bool        `yaml:"contract-generate-sdk,omitempty"`
 }
 
 type CPMConfig struct {
 	Defaults struct {
-		ContractSourceNetwork string `json:"contract-source-network"`
-		ContractDestination   string `json:"contract-destination"`
-		ContractGenerateSdk   bool   `json:"contract-generate-sdk"`
-		SdkLanguage           string `json:"sdk-language"`
-	} `json:"defaults"`
-	Contracts []ContractConfig `json:"contracts"`
+		ContractSourceNetwork string `yaml:"contract-source-network"`
+		ContractDestination   string `yaml:"contract-destination"`
+		ContractGenerateSdk   bool   `yaml:"contract-generate-sdk"`
+		SdkLanguage           string `yaml:"sdk-language"`
+	} `yaml:"defaults"`
+	Contracts []ContractConfig `yaml:"contracts"`
 	Tools     struct {
 		NeoExpress struct {
-			CanGenerateSDK      bool    `json:"canGenerateSDK"`
-			CanDownloadContract bool    `json:"canDownloadContract"`
-			ExecutablePath      *string `json:"executable-path"`
-			ConfigPath          string  `json:"config-path"`
-		} `json:"neo-express"`
-	} `json:"tools"`
+			CanGenerateSDK      bool    `yaml:"canGenerateSDK"`
+			CanDownloadContract bool    `yaml:"canDownloadContract"`
+			ExecutablePath      *string `yaml:"executable-path"`
+			ConfigPath          string  `yaml:"config-path"`
+		} `yaml:"neo-express"`
+	} `yaml:"tools"`
 	Networks []struct {
-		Label string   `json:"label"`
-		Hosts []string `json:"hosts"`
-	} `json:"networks"`
+		Label string   `yaml:"label"`
+		Hosts []string `yaml:"hosts"`
+	} `yaml:"networks"`
 }
 
 func LoadConfig() {
@@ -55,8 +55,8 @@ func LoadConfig() {
 	}
 	defer f.Close()
 
-	jsonData, _ := ioutil.ReadAll(f)
-	if err := json.Unmarshal(jsonData, &cfg); err != nil {
+	yamlData, _ := ioutil.ReadAll(f)
+	if err := yaml.Unmarshal(yamlData, &cfg); err != nil {
 		log.Fatal(fmt.Errorf("failed to parse config file: %w", err))
 	}
 

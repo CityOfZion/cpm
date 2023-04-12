@@ -1,4 +1,4 @@
-`cpm.json` is your project configuration file. It holds all information about which contracts it should download,
+`cpm.yaml` is your project configuration file. It holds all information about which contracts it should download,
 from which network and whether it should generate an SDK that can quickly be consumed in the smart contract you're developing.
 
 It has 4 major sections which will be described in detail later on
@@ -34,16 +34,14 @@ Other keys are tool specific
 
 Example
 
-```json
-"neo-express": {
-    "canGenerateSDK": false,
-    "canDownloadContract": true,
-    "executable-path": null,
-    "config-path": "default.neo-express"
-}
+```yaml
+neo-express:
+  canGenerateSDK: false
+  canDownloadContract: true
+  executable-path: null
+  config-path: default.neo-express
 ```
 
-
 # networks
-* label - a user defined name for your network. Must be a string.
-* hosts - a list of RPC addresses that all point to the same network. They will be queried in order until one of them gives a successful response.
+* `label` - a user defined name for your network. Must be a string.
+* `hosts` - a list of RPC addresses that all point to the same network. They will be queried in order until one of them gives a successful response.

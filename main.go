@@ -28,7 +28,7 @@ var (
 	LOG_INFO  = "INFO"
 	LOG_DEBUG = "DEBUG"
 
-	DEFAULT_CONFIG_FILE = "cpm.json"
+	DEFAULT_CONFIG_FILE = "cpm.yaml"
 )
 
 func main() {
@@ -56,12 +56,12 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:   "init",
-				Usage:  "Create a new cpm.json config file",
+				Usage:  "Create a new cpm.yaml config file",
 				Action: handleCliInit,
 			},
 			{
 				Name:  "run",
-				Usage: "Download all contracts from cpm.json and generate SDKs where specified",
+				Usage: "Download all contracts from cpm.yaml and generate SDKs where specified",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{Name: "download-only", Usage: "Override config settings to only download contracts and storage", Required: false},
 					&cli.BoolFlag{Name: "sdk-only", Usage: "Override config settings to only generate SDKs", Required: false},
@@ -85,7 +85,7 @@ func main() {
 						Usage: "Download a single contract",
 						Flags: []cli.Flag{
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash", Required: true},
-							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.json for the network by label to find the host", Required: false},
+							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.yaml for the network by label to find the host", Required: false},
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
 							&cli.StringFlag{Name: "i", Usage: "neo express config file", Required: false, DefaultText: "default.neo-express"},
 						},
@@ -96,7 +96,7 @@ func main() {
 						Usage: "Download the contract manifest",
 						Flags: []cli.Flag{
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash", Required: true},
-							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.json for the network by label to find the host", Required: false},
+							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.yaml for the network by label to find the host", Required: false},
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
 						},
 						Action: handleCliDownloadManifest,
