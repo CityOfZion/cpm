@@ -31,7 +31,7 @@ func NewNeoExpressDownloader(configPath string) Downloader {
 		if err != nil {
 			log.Fatal("Could not find 'neoxp' executable in $PATH. Please install neoxp globally using " +
 				"'dotnet tool install Neo.Express -g'" +
-				" or specify the 'executable-path' in cpm.json in the neo-express tools section")
+				" or specify the 'executable-path' in cpm.yaml in the neo-express tools section")
 		}
 	} else {
 		// Verify path works by calling help (which has a 0 exit code)
