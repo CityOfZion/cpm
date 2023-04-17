@@ -17,16 +17,17 @@ var defaultConfig []byte
 var cfg CPMConfig
 
 type ContractConfig struct {
-	Label               string       `yaml:"label"`
-	ScriptHash          util.Uint160 `yaml:"script-hash"`
-	SourceNetwork       *string      `yaml:"source-network,omitempty"`
-	ContractGenerateSdk *bool        `yaml:"contract-generate-sdk,omitempty"`
-	SdkDestinations     *SdkDestinations `yaml:"sdk-destinations"`
+	Label               string          `yaml:"label"`
+	ScriptHash          util.Uint160    `yaml:"script-hash"`
+	SourceNetwork       *string         `yaml:"source-network,omitempty"`
+	ContractGenerateSdk *bool           `yaml:"contract-generate-sdk,omitempty"`
+	OnChain             *GenerateConfig `yaml:"on-chain"`
+	OffChain            *GenerateConfig `yaml:"off-chain"`
 }
 
-type SdkDestinations struct {
-	OnChain SdkDestination `yaml:"onchain"`
-	//OffChain SdkDestination `json:"offchain"`
+type GenerateConfig struct {
+	Languages      []string       `yaml:"languages"`
+	SdkDestination SdkDestination `yaml:"destination"`
 }
 
 type SdkDestination struct {
@@ -38,11 +39,12 @@ type SdkDestination struct {
 
 type CPMConfig struct {
 	Defaults struct {
-		ContractSourceNetwork string `yaml:"contract-source-network"`
-		ContractDestination   string `yaml:"contract-destination"`
-		ContractGenerateSdk   bool   `yaml:"contract-generate-sdk"`
-		SdkLanguage           string `yaml:"sdk-language"`
-		SdkDestinations       *SdkDestinations `yaml:"sdk-destinations"`
+		ContractSourceNetwork string          `yaml:"contract-source-network"`
+		ContractDestination   string          `yaml:"contract-destination"`
+		ContractGenerateSdk   bool            `yaml:"contract-generate-sdk"`
+		SdkLanguage           string          `yaml:"sdk-language"`
+		OnChain               *GenerateConfig `yaml:"on-chain"`
+		OffChain              *GenerateConfig `yaml:"off-chain"`
 	} `yaml:"defaults"`
 	Contracts []ContractConfig `yaml:"contracts"`
 	Tools     struct {
@@ -109,29 +111,29 @@ func (c *CPMConfig) getHosts(networkLabel string) []string {
 }
 
 func (c *CPMConfig) getSdkDestination(forLanguage string) string {
-	if c.Defaults.SdkDestinations == nil {
+	if c.Defaults.OnChain == nil {
 		return generators.OutputRoot + forLanguage + "/"
 	}
 
 	defaultLocation := generators.OutputRoot + forLanguage + "/"
 	switch forLanguage {
 	case LANG_PYTHON:
-		if path := c.Defaults.SdkDestinations.OnChain.Python; path != nil {
+		if path := c.Defaults.OnChain.SdkDestination.Python; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_GO:
-		if path := c.Defaults.SdkDestinations.OnChain.Golang; path != nil {
+		if path := c.Defaults.OnChain.SdkDestination.Golang; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_JAVA:
-		if path := c.Defaults.SdkDestinations.OnChain.Java; path != nil {
+		if path := c.Defaults.OnChain.SdkDestination.Java; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_CSHARP:
-		if path := c.Defaults.SdkDestinations.OnChain.Csharp; path != nil {
+		if path := c.Defaults.OnChain.SdkDestination.Csharp; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
