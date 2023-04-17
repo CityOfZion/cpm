@@ -6,7 +6,7 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/nspcc-dev/neo-go v0.99.2
 	github.com/sirupsen/logrus v1.9.0
-	github.com/urfave/cli/v2 v2.11.1
+	github.com/urfave/cli/v2 v2.25.1
 )
 
 require (
