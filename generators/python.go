@@ -27,7 +27,8 @@ import (
 const pythonSrcTmpl = `
 {{- define "METHOD" }}
     @staticmethod
-    @display_name("{{.NameABI }}")
+    {{- if ne .NameABI .Name}}
+    @display_name("{{.NameABI }}"){{end}}
     def {{.Name}}({{range $index, $arg := .Arguments -}}
        {{- if ne $index 0}}, {{end}}
           {{- .Name}}: {{.Type}}
