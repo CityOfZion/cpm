@@ -27,6 +27,7 @@ import (
 const pythonSrcTmpl = `
 {{- define "METHOD" }}
     @staticmethod
+    @display_name("{{.NameABI }}")
     def {{.Name}}({{range $index, $arg := .Arguments -}}
        {{- if ne $index 0}}, {{end}}
           {{- .Name}}: {{.Type}}
@@ -34,7 +35,7 @@ const pythonSrcTmpl = `
         pass
 {{- end -}}
 from boa3.builtin.type import UInt160, UInt256, ECPoint
-from boa3.builtin.compile_time import contract
+from boa3.builtin.compile_time import contract, display_name
 from typing import cast, Any
 
 
