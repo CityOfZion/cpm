@@ -348,9 +348,15 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 		return err
 	}
 
-	err = generateSDK(m, c.ScriptHash, cfg.Defaults.SdkLanguage, cfg.getSdkDestination(cfg.Defaults.SdkLanguage))
-	if err != nil {
-		return err
+	languages := cfg.Defaults.OnChain.Languages
+	if c.OnChain != nil {
+		languages = c.OnChain.Languages
+	}
+	for _, l := range languages {
+		err = generateSDK(m, c.ScriptHash, l, cfg.getSdkDestination(l))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

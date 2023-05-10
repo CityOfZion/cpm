@@ -26,13 +26,13 @@ type ContractConfig struct {
 }
 
 type GenerateConfig struct {
-	Languages      []string       `yaml:"languages"`
-	SdkDestination SdkDestination `yaml:"destination"`
+	Languages       []string       `yaml:"languages"`
+	SdkDestinations SdkDestination `yaml:"destinations"`
 }
 
 type SdkDestination struct {
 	Csharp *string `yaml:"csharp"`
-	Golang *string `yaml:"golang"`
+	Golang *string `yaml:"go"`
 	Java   *string `yaml:"java"`
 	Python *string `yaml:"python"`
 }
@@ -42,7 +42,6 @@ type CPMConfig struct {
 		ContractSourceNetwork string          `yaml:"contract-source-network"`
 		ContractDestination   string          `yaml:"contract-destination"`
 		ContractGenerateSdk   bool            `yaml:"contract-generate-sdk"`
-		SdkLanguage           string          `yaml:"sdk-language"`
 		OnChain               *GenerateConfig `yaml:"on-chain"`
 		OffChain              *GenerateConfig `yaml:"off-chain"`
 	} `yaml:"defaults"`
@@ -118,22 +117,22 @@ func (c *CPMConfig) getSdkDestination(forLanguage string) string {
 	defaultLocation := generators.OutputRoot + forLanguage + "/"
 	switch forLanguage {
 	case LANG_PYTHON:
-		if path := c.Defaults.OnChain.SdkDestination.Python; path != nil {
+		if path := c.Defaults.OnChain.SdkDestinations.Python; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_GO:
-		if path := c.Defaults.OnChain.SdkDestination.Golang; path != nil {
+		if path := c.Defaults.OnChain.SdkDestinations.Golang; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_JAVA:
-		if path := c.Defaults.OnChain.SdkDestination.Java; path != nil {
+		if path := c.Defaults.OnChain.SdkDestinations.Java; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_CSHARP:
-		if path := c.Defaults.OnChain.SdkDestination.Csharp; path != nil {
+		if path := c.Defaults.OnChain.SdkDestinations.Csharp; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
