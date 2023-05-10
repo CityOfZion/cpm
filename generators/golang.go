@@ -15,7 +15,7 @@ func GenerateGoSDK(cfg *GenerateCfg) error {
 	goconfig.Hash = cfg.ContractHash
 
 	dir := cfg.SdkDestination
-	err := os.Mkdir(dir, 0755)
+	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", dir, err)
 	}
