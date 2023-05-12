@@ -8,7 +8,7 @@ defaults:
     # both languages and destinations take the same keys values: csharp, go, java or python
     languages:
     - python
-    # if not destination is given for a specific language it will output to ./cpm_out/<language>/<sdk name>
+    # if no destination is given for a specific language it will output to ./cpm_out/<language>/<sdk name>
 #    destinations:
 #      python: <python_sdk_output_dir>
 #      java: <java_sdk_output_dir>
