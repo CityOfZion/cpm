@@ -68,13 +68,13 @@ func GenerateJavaSDK(cfg *GenerateCfg) error {
 		return err
 	}
 
-	log.Infof("Created SDK for contract '%s' at %sjava/ with contract hash 0x%s", cfg.Manifest.Name, wd+"/"+OutputRoot, cfg.ContractHash.StringLE())
+	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, wd+"/"+cfg.SdkDestination, cfg.ContractHash.StringLE())
 
 	return nil
 }
 
 func createJavaPackage(cfg *GenerateCfg) error {
-	dir := OutputRoot + "java/"
+	dir := cfg.SdkDestination
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", dir, err)

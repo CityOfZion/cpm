@@ -3,7 +3,17 @@ defaults:
   contract-source-network: mainnet
   contract-destination: neo-express
   contract-generate-sdk: false
-  sdk-language: python
+  # settings related to SDK generation for on chain contracts
+  on-chain:
+    # both languages and destinations take the same keys values: csharp, go, java or python
+    languages:
+    - python
+    # if no destination is given for a specific language it will output to ./cpm_out/<language>/<sdk name>
+#    destinations:
+#      python: <python_sdk_output_dir>
+#      java: <java_sdk_output_dir>
+
+
 # which contracts to download with what options
 contracts:
     # Label can be anything that allows you to identify which contract this is 

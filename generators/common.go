@@ -22,6 +22,7 @@ type (
 		ContractOutput      *os.File
 		ParamTypeConverter  convertParam
 		MethodNameConverter func(s string) string
+		SdkDestination      string
 	}
 
 	contractTmpl struct {

@@ -118,6 +118,7 @@ func main() {
 							Enum: []string{LANG_GO, LANG_PYTHON, LANG_JAVA, LANG_CSHARP},
 						},
 					},
+					&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
 				},
 			},
 		},
@@ -329,7 +330,16 @@ func handleCliGenerate(cCtx *cli.Context) error {
 	if language == "" {
 		log.Fatalf("must specify a target language using -l")
 	}
-	return generateSDK(m, contractHash, language)
+
+	dest := cCtx.String("o")
+	if dest == "" {
+		LoadConfig()
+		dest = cfg.getSdkDestination(language)
+	} else {
+		dest = EnsureSuffix(dest)
+	}
+
+	return generateSDK(m, contractHash, language, dest)
 }
 
 func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
@@ -338,9 +348,15 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 		return err
 	}
 
-	err = generateSDK(m, c.ScriptHash, cfg.Defaults.SdkLanguage)
-	if err != nil {
-		return err
+	languages := cfg.Defaults.OnChain.Languages
+	if c.OnChain != nil {
+		languages = c.OnChain.Languages
+	}
+	for _, l := range languages {
+		err = generateSDK(m, c.ScriptHash, l, cfg.getSdkDestination(l))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -379,10 +395,11 @@ func readManifest(filename string) (*manifest.Manifest, []byte, error) {
 	return m, manifestBytes, nil
 }
 
-func generateSDK(m *manifest.Manifest, scriptHash util.Uint160, language string) error {
+func generateSDK(m *manifest.Manifest, scriptHash util.Uint160, language string, outputDestination string) error {
 	cfg := generators.GenerateCfg{
-		Manifest:     m,
-		ContractHash: scriptHash,
+		Manifest:       m,
+		ContractHash:   scriptHash,
+		SdkDestination: outputDestination,
 	}
 
 	var err error

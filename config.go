@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cpm/generators"
 	_ "embed"
 	"fmt"
 	"github.com/nspcc-dev/neo-go/pkg/util"
@@ -16,18 +17,33 @@ var defaultConfig []byte
 var cfg CPMConfig
 
 type ContractConfig struct {
-	Label               string       `yaml:"label"`
-	ScriptHash          util.Uint160 `yaml:"script-hash"`
-	SourceNetwork       *string      `yaml:"source-network,omitempty"`
-	ContractGenerateSdk *bool        `yaml:"contract-generate-sdk,omitempty"`
+	Label               string          `yaml:"label"`
+	ScriptHash          util.Uint160    `yaml:"script-hash"`
+	SourceNetwork       *string         `yaml:"source-network,omitempty"`
+	ContractGenerateSdk *bool           `yaml:"contract-generate-sdk,omitempty"`
+	OnChain             *GenerateConfig `yaml:"on-chain"`
+	OffChain            *GenerateConfig `yaml:"off-chain"`
+}
+
+type GenerateConfig struct {
+	Languages       []string       `yaml:"languages"`
+	SdkDestinations SdkDestination `yaml:"destinations"`
+}
+
+type SdkDestination struct {
+	Csharp *string `yaml:"csharp"`
+	Golang *string `yaml:"go"`
+	Java   *string `yaml:"java"`
+	Python *string `yaml:"python"`
 }
 
 type CPMConfig struct {
 	Defaults struct {
-		ContractSourceNetwork string `yaml:"contract-source-network"`
-		ContractDestination   string `yaml:"contract-destination"`
-		ContractGenerateSdk   bool   `yaml:"contract-generate-sdk"`
-		SdkLanguage           string `yaml:"sdk-language"`
+		ContractSourceNetwork string          `yaml:"contract-source-network"`
+		ContractDestination   string          `yaml:"contract-destination"`
+		ContractGenerateSdk   bool            `yaml:"contract-generate-sdk"`
+		OnChain               *GenerateConfig `yaml:"on-chain"`
+		OffChain              *GenerateConfig `yaml:"off-chain"`
 	} `yaml:"defaults"`
 	Contracts []ContractConfig `yaml:"contracts"`
 	Tools     struct {
@@ -91,6 +107,38 @@ func (c *CPMConfig) getHosts(networkLabel string) []string {
 	}
 	log.Fatalf("Could not find hosts for label: %s", networkLabel)
 	return nil
+}
+
+func (c *CPMConfig) getSdkDestination(forLanguage string) string {
+	if c.Defaults.OnChain == nil {
+		return generators.OutputRoot + forLanguage + "/"
+	}
+
+	defaultLocation := generators.OutputRoot + forLanguage + "/"
+	switch forLanguage {
+	case LANG_PYTHON:
+		if path := c.Defaults.OnChain.SdkDestinations.Python; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	case LANG_GO:
+		if path := c.Defaults.OnChain.SdkDestinations.Golang; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	case LANG_JAVA:
+		if path := c.Defaults.OnChain.SdkDestinations.Java; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	case LANG_CSHARP:
+		if path := c.Defaults.OnChain.SdkDestinations.Csharp; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	default:
+		return defaultLocation
+	}
 }
 
 type EnumValue struct {

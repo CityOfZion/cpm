@@ -68,14 +68,14 @@ func GenerateCsharpSDK(cfg *GenerateCfg) error {
 		return err
 	}
 
-	sdkLocation := wd + "/" + OutputRoot + "csharp/" + upperFirst(cfg.Manifest.Name) + ".cs"
+	sdkLocation := wd + "/" + cfg.SdkDestination + upperFirst(cfg.Manifest.Name) + ".cs"
 	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
 
 	return nil
 }
 
 func createCsharpPackage(cfg *GenerateCfg) error {
-	dir := OutputRoot + "csharp/cpm/"
+	dir := cfg.SdkDestination
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", dir, err)
