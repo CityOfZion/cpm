@@ -31,6 +31,22 @@ var (
 	DEFAULT_CONFIG_FILE = "cpm.yaml"
 )
 
+var GenerateCommandHelpTemplate = `NAME:
+   {{template "helpNameTemplate" .}}
+
+USAGE:
+   {{if .UsageText}}{{wrap .UsageText 3}}{{else}}{{.HelpName}} {{if .VisibleFlags}}language [language options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Description}}
+
+DESCRIPTION:
+   {{template "descriptionTemplate" .}}{{end}}{{if .VisibleCommands}}
+
+LANGUAGES:{{template "visibleCommandTemplate" .}}{{end}}{{if .VisibleFlagCategories}}
+
+OPTIONS:{{template "visibleFlagCategoryTemplate" .}}{{else if .VisibleFlags}}
+
+OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}
+`
+
 func main() {
 	log.SetOutput(os.Stdout)
 
@@ -65,14 +81,6 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.BoolFlag{Name: "download-only", Usage: "Override config settings to only download contracts and storage", Required: false},
 					&cli.BoolFlag{Name: "sdk-only", Usage: "Override config settings to only generate SDKs", Required: false},
-					//&cli.GenericFlag{
-					//	Name:     "d",
-					//	Usage:    "Destination toolchain",
-					//	Required: false,
-					//	Value: &EnumValue{
-					//		Enum: []string{TOOL_NEO_EXPRESS},
-					//	},
-					//},
 				},
 				Action: handleCliRun,
 			},
@@ -104,21 +112,58 @@ func main() {
 				},
 			},
 			{
-				Name:   "generate",
-				Usage:  "Generate SDK from manifest",
-				Action: handleCliGenerate,
-				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
-					&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
-					&cli.GenericFlag{
-						Name:     "l",
-						Usage:    "SDK output language",
-						Required: true, // TODO: figure out why this is not working
-						Value: &EnumValue{
-							Enum: []string{LANG_GO, LANG_PYTHON, LANG_JAVA, LANG_CSHARP},
+				Name:               "generate",
+				Usage:              "Generate SDK from manifest",
+				CustomHelpTemplate: GenerateCommandHelpTemplate,
+				Subcommands: []*cli.Command{
+					{
+						Name:  LANG_GO,
+						Usage: "Generate an SDK for use with Golang",
+						Action: func(c *cli.Context) error {
+							return handleCliGenerate(c, LANG_GO)
+						},
+						Flags: []cli.Flag{
+							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
+							&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
+							&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
 						},
 					},
-					&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
+					{
+						Name:  LANG_PYTHON,
+						Usage: "Generate an SDK for use with Python",
+						Action: func(c *cli.Context) error {
+							return handleCliGenerate(c, LANG_PYTHON)
+						},
+						Flags: []cli.Flag{
+							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
+							&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
+							&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
+						},
+					},
+					{
+						Name:  LANG_JAVA,
+						Usage: "Generate an SDK for use with Java",
+						Action: func(c *cli.Context) error {
+							return handleCliGenerate(c, LANG_JAVA)
+						},
+						Flags: []cli.Flag{
+							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
+							&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
+							&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
+						},
+					},
+					{
+						Name:  LANG_CSHARP,
+						Usage: "Generate an SDK for use with C#",
+						Action: func(c *cli.Context) error {
+							return handleCliGenerate(c, LANG_CSHARP)
+						},
+						Flags: []cli.Flag{
+							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
+							&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
+							&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
+						},
+					},
 				},
 			},
 		},
@@ -318,18 +363,13 @@ func handleCliDownloadManifest(cCtx *cli.Context) error {
 	return err
 }
 
-func handleCliGenerate(cCtx *cli.Context) error {
+func handleCliGenerate(cCtx *cli.Context, language string) error {
 	m, _, err := readManifest(cCtx.String("m"))
 	if err != nil {
 		log.Fatalf("can't read contract manifest: %s", err)
 	}
 
 	contractHash, _ := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
-
-	language := cCtx.String("l")
-	if language == "" {
-		log.Fatalf("must specify a target language using -l")
-	}
 
 	dest := cCtx.String("o")
 	if dest == "" {
