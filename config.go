@@ -4,25 +4,26 @@ import (
 	"cpm/generators"
 	_ "embed"
 	"fmt"
-	"github.com/nspcc-dev/neo-go/pkg/util"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/nspcc-dev/neo-go/pkg/util"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v3"
 )
 
 //go:embed cpm.yaml.default
 var defaultConfig []byte
-var cfg CPMConfig
+var cfg *CPMConfig
 
 type ContractConfig struct {
 	Label               string          `yaml:"label"`
 	ScriptHash          util.Uint160    `yaml:"script-hash"`
 	SourceNetwork       *string         `yaml:"source-network,omitempty"`
 	ContractGenerateSdk *bool           `yaml:"contract-generate-sdk,omitempty"`
-	OnChain             *GenerateConfig `yaml:"on-chain"`
-	OffChain            *GenerateConfig `yaml:"off-chain"`
+	OnChain             *GenerateConfig `yaml:"on-chain,omitempty"`
+	OffChain            *GenerateConfig `yaml:"off-chain,omitempty"`
 }
 
 type GenerateConfig struct {
@@ -31,10 +32,10 @@ type GenerateConfig struct {
 }
 
 type SdkDestination struct {
-	Csharp *string `yaml:"csharp"`
-	Golang *string `yaml:"go"`
-	Java   *string `yaml:"java"`
-	Python *string `yaml:"python"`
+	Csharp *string `yaml:"csharp,omitempty"`
+	Golang *string `yaml:"go,omitempty"`
+	Java   *string `yaml:"java,omitempty"`
+	Python *string `yaml:"python,omitempty"`
 }
 
 type CPMConfig struct {
@@ -42,15 +43,15 @@ type CPMConfig struct {
 		ContractSourceNetwork string          `yaml:"contract-source-network"`
 		ContractDestination   string          `yaml:"contract-destination"`
 		ContractGenerateSdk   bool            `yaml:"contract-generate-sdk"`
-		OnChain               *GenerateConfig `yaml:"on-chain"`
-		OffChain              *GenerateConfig `yaml:"off-chain"`
+		OnChain               *GenerateConfig `yaml:"on-chain,omitempty"`
+		OffChain              *GenerateConfig `yaml:"off-chain,omitempty"`
 	} `yaml:"defaults"`
 	Contracts []ContractConfig `yaml:"contracts"`
 	Tools     struct {
 		NeoExpress struct {
 			CanGenerateSDK      bool    `yaml:"canGenerateSDK"`
 			CanDownloadContract bool    `yaml:"canDownloadContract"`
-			ExecutablePath      *string `yaml:"executable-path"`
+			ExecutablePath      *string `yaml:"executable-path,omitempty"`
 			ConfigPath          string  `yaml:"config-path"`
 		} `yaml:"neo-express"`
 	} `yaml:"tools"`
@@ -99,6 +100,16 @@ func CreateDefaultConfig() {
 	}
 }
 
+func (c *CPMConfig) addContract(label string, scriptHash util.Uint160) {
+	for _, c := range cfg.Contracts {
+		if c.ScriptHash.Equals(scriptHash) {
+			return
+		}
+	}
+	cfg.Contracts = append(cfg.Contracts, ContractConfig{Label: label, ScriptHash: scriptHash})
+	saveConfig()
+}
+
 func (c *CPMConfig) getHosts(networkLabel string) []string {
 	for _, network := range c.Networks {
 		if network.Label == networkLabel {
@@ -138,6 +149,24 @@ func (c *CPMConfig) getSdkDestination(forLanguage string) string {
 		return defaultLocation
 	default:
 		return defaultLocation
+	}
+}
+
+func saveConfig() {
+	f, err := os.Create(DEFAULT_CONFIG_FILE)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return
+	}
+
+	_, err = f.Write(data)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 

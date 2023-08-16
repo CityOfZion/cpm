@@ -96,6 +96,7 @@ func main() {
 							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.yaml for the network by label to find the host", Required: false},
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
 							&cli.StringFlag{Name: "i", Usage: "neo express config file", Required: false, DefaultText: "default.neo-express"},
+							&cli.BoolFlag{Name: "s", Usage: "save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
 						},
 						Action: handleCliDownloadContract,
 					},
@@ -106,6 +107,7 @@ func main() {
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash", Required: true},
 							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.yaml for the network by label to find the host", Required: false},
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
+							&cli.BoolFlag{Name: "s", Usage: "save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
 						},
 						Action: handleCliDownloadManifest,
 					},
@@ -258,18 +260,8 @@ func handleCliDownloadContract(cCtx *cli.Context) error {
 	networkLabel := cCtx.String("n")
 	networkHost := cCtx.String("N")
 
-	var (
-		scriptHash util.Uint160
-		downloader Downloader
-	)
-
 	if networkLabel != "" && networkHost != "" {
 		log.Fatal("-n and -N flags are mutually exclusive")
-	}
-
-	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
-	if err != nil {
-		return err
 	}
 
 	LoadConfig()
@@ -283,6 +275,17 @@ func handleCliDownloadContract(cCtx *cli.Context) error {
 	} else {
 		log.Fatal("Must specify either -n or -N flag")
 	}
+
+	var (
+		scriptHash util.Uint160
+		downloader Downloader
+	)
+
+	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
+	if err != nil {
+		return err
+	}
+	cfg.addContract("unknown", scriptHash)
 
 	// for now, we only support NeoExpress
 	configPath := cfg.Tools.NeoExpress.ConfigPath
@@ -355,6 +358,13 @@ func handleCliDownloadManifest(cCtx *cli.Context) error {
 				return err
 			}
 			log.Info("Written manifest to contract.manifest.json")
+
+			if save := cCtx.Bool("s"); save {
+				if cfg == nil {
+					LoadConfig()
+				}
+				cfg.addContract(m.Name, scriptHash)
+			}
 			return nil
 		}
 	}
@@ -369,8 +379,6 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 		log.Fatalf("can't read contract manifest: %s", err)
 	}
 
-	contractHash, _ := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
-
 	dest := cCtx.String("o")
 	if dest == "" {
 		LoadConfig()
@@ -379,7 +387,12 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 		dest = EnsureSuffix(dest)
 	}
 
-	return generateSDK(m, contractHash, language, dest)
+	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
+	if err != nil {
+		return err
+	}
+
+	return generateSDK(m, scriptHash, language, dest)
 }
 
 func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
