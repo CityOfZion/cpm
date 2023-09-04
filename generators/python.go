@@ -42,6 +42,7 @@ from typing import cast, Any
 
 @contract('{{ .Hash }}')
 class {{ .ContractName }}:
+    hash: UInt160
 {{- range $m := .Methods}}
 {{ template "METHOD" $m -}}
 {{end}}`
