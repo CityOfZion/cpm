@@ -335,7 +335,7 @@ func handleCliDownloadManifest(cCtx *cli.Context) error {
 
 	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
 	if err != nil {
-		return err
+		log.Fatalf("failed to convert script hash: %v", err)
 	}
 
 	for _, host := range hosts {
@@ -387,9 +387,13 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 		dest = EnsureSuffix(dest)
 	}
 
-	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
-	if err != nil {
-		return err
+	scriptHash := util.Uint160{}
+	scriptHashStr := cCtx.String("c")
+	if scriptHashStr != "" {
+		scriptHash, err = util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
+		if err != nil {
+			log.Fatalf("failed to convert script hash: %v", err)
+		}
 	}
 
 	return generateSDK(m, scriptHash, language, dest)
