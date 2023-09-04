@@ -49,23 +49,23 @@ func GenerateJavaSDK(cfg *GenerateCfg) error {
 	cfg.ParamTypeConverter = scTypeToJava
 	ctr, err := templateFromManifest(cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse manifest into contract template: %v", err)
 	}
 	ctr.Hash = strings.TrimPrefix(ctr.Hash, "0x")
 
 	tmp, err := template.New("generate").Parse(javaSrcTmpl)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse Java source template: %v", err)
 	}
 
 	err = tmp.Execute(cfg.ContractOutput, ctr)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to generate Java code using template: %v", err)
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get working directory: %v", err)
 	}
 
 	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, wd+"/"+cfg.SdkDestination, cfg.ContractHash.StringLE())

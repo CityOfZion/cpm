@@ -50,22 +50,22 @@ func GenerateCsharpSDK(cfg *GenerateCfg) error {
 	cfg.ParamTypeConverter = scTypeToCsharp
 	ctr, err := templateFromManifest(cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse manifest into contract template: %v", err)
 	}
 
 	tmp, err := template.New("generate").Parse(csharpSrcTmpl)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse C# source template: %v", err)
 	}
 
 	err = tmp.Execute(cfg.ContractOutput, ctr)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to generate C# code using template: %v", err)
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get working directory: %v", err)
 	}
 
 	sdkLocation := wd + "/" + cfg.SdkDestination + upperFirst(cfg.Manifest.Name) + ".cs"

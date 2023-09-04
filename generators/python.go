@@ -58,22 +58,22 @@ func GeneratePythonSDK(cfg *GenerateCfg) error {
 	cfg.ParamTypeConverter = scTypeToPython
 	ctr, err := templateFromManifest(cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse manifest into contract template: %v", err)
 	}
 
 	tmp, err := template.New("generate").Parse(pythonSrcTmpl)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse Python source template: %v", err)
 	}
 
 	err = tmp.Execute(cfg.ContractOutput, ctr)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to generate Python code using template: %v", err)
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get working directory: %v", err)
 	}
 	sdkLocation := wd + "/" + cfg.SdkDestination + upperFirst(cfg.Manifest.Name)
 	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
