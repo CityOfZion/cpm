@@ -3,6 +3,7 @@ package generators
 import (
 	"fmt"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/iancoleman/strcase"
@@ -83,7 +84,7 @@ func GeneratePythonSDK(cfg *GenerateCfg) error {
 
 // create the Python package structure and set the ContractOutput to the open file handle
 func createPythonPackage(cfg *GenerateCfg) error {
-	sdkDir := cfg.SdkDestination + cfg.Manifest.Name
+	sdkDir := cfg.SdkDestination + strings.ToLower(cfg.Manifest.Name)
 	err := os.MkdirAll(sdkDir, 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", sdkDir, err)
