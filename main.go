@@ -422,6 +422,13 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 	if c.OnChain != nil {
 		languages = c.OnChain.Languages
 	}
+
+	if c.OffChain != nil {
+		languages = append(languages, c.OffChain.Languages...)
+	} else {
+		languages = append(languages, cfg.Defaults.OffChain.Languages...)
+	}
+
 	for _, l := range languages {
 		err = generateSDK(m, c.ScriptHash, l, cfg.getSdkDestination(l))
 		if err != nil {

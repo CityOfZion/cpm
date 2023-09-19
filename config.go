@@ -36,6 +36,7 @@ type SdkDestination struct {
 	Golang *string `yaml:"go,omitempty"`
 	Java   *string `yaml:"java,omitempty"`
 	Python *string `yaml:"python,omitempty"`
+	TS     *string `yaml:"ts,omitempty"`
 }
 
 type CPMConfig struct {
@@ -121,8 +122,16 @@ func (c *CPMConfig) getHosts(networkLabel string) []string {
 }
 
 func (c *CPMConfig) getSdkDestination(forLanguage string) string {
-	if c.Defaults.OnChain == nil {
-		return generators.OutputRoot + forLanguage + "/"
+	// TODO: this is a bit of a hack
+	// Resolve this properly once we have a second language that can do off-chain generation or a language that supports both
+	if forLanguage == LANG_TYPESCRIPT {
+		if c.Defaults.OffChain == nil {
+			return generators.OutputRoot + forLanguage + "/"
+		}
+	} else {
+		if c.Defaults.OnChain == nil {
+			return generators.OutputRoot + forLanguage + "/"
+		}
 	}
 
 	defaultLocation := generators.OutputRoot + forLanguage + "/"
@@ -144,6 +153,11 @@ func (c *CPMConfig) getSdkDestination(forLanguage string) string {
 		return defaultLocation
 	case LANG_CSHARP:
 		if path := c.Defaults.OnChain.SdkDestinations.Csharp; path != nil {
+			return EnsureSuffix(*path)
+		}
+		return defaultLocation
+	case LANG_TYPESCRIPT:
+		if path := c.Defaults.OffChain.SdkDestinations.TS; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
