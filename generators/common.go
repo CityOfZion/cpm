@@ -3,6 +3,7 @@ package generators
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -30,19 +31,29 @@ type (
 		Imports      []string
 		Hash         string
 		Methods      []methodTmpl
+		Events       []eventTmpl
 	}
 
 	methodTmpl struct {
-		Name       string
-		NameABI    string
-		Comment    string
-		Arguments  []paramTmpl
-		ReturnType string
+		Name          string
+		NameABI       string
+		Comment       string
+		Safe          bool
+		Arguments     []paramTmpl
+		ReturnType    string
+		ReturnTypeABI string
+	}
+
+	eventTmpl struct {
+		Name      string
+		NameABI   string
+		Arguments []paramTmpl
 	}
 
 	paramTmpl struct {
-		Name string
-		Type string
+		Name    string
+		Type    string
+		TypeABI string
 	}
 
 	convertParam func(typ smartcontract.ParamType) string
@@ -50,7 +61,7 @@ type (
 
 func templateFromManifest(cfg *GenerateCfg) (contractTmpl, error) {
 	ctr := contractTmpl{
-		ContractName: upperFirst(cfg.Manifest.Name),
+		ContractName: cleanContractName(cfg.Manifest.Name),
 		Hash:         "0x" + cfg.ContractHash.StringLE(),
 	}
 
@@ -77,6 +88,7 @@ func templateFromManifest(cfg *GenerateCfg) (contractTmpl, error) {
 			Name:    cfg.MethodNameConverter(name),
 			NameABI: method.Name,
 			Comment: fmt.Sprintf("invokes `%s` method of contract.", method.Name),
+			Safe:    method.Safe,
 		}
 
 		for i := range method.Parameters {
@@ -88,16 +100,46 @@ func templateFromManifest(cfg *GenerateCfg) (contractTmpl, error) {
 			var typeStr = cfg.ParamTypeConverter(method.Parameters[i].Type)
 
 			mtd.Arguments = append(mtd.Arguments, paramTmpl{
+				Name:    name,
+				Type:    typeStr,
+				TypeABI: (smartcontract.ParamType).String(method.Parameters[i].Type),
+			})
+		}
+		mtd.ReturnType = cfg.ParamTypeConverter(method.ReturnType)
+		mtd.ReturnTypeABI = (smartcontract.ParamType).String(method.ReturnType)
+		ctr.Methods = append(ctr.Methods, mtd)
+	}
+
+	for _, event := range cfg.Manifest.ABI.Events {
+		name := event.Name
+
+		evt := eventTmpl{
+			Name: name,
+		}
+
+		for i := range event.Parameters {
+			name := event.Parameters[i].Name
+			if name == "" {
+				name = fmt.Sprintf("arg%d", i)
+			}
+
+			var typeStr = cfg.ParamTypeConverter(event.Parameters[i].Type)
+
+			evt.Arguments = append(evt.Arguments, paramTmpl{
 				Name: name,
 				Type: typeStr,
 			})
 		}
-		mtd.ReturnType = cfg.ParamTypeConverter(method.ReturnType)
-		ctr.Methods = append(ctr.Methods, mtd)
+		ctr.Events = append(ctr.Events, evt)
 	}
+
 	return ctr, nil
 }
 
 func upperFirst(s string) string {
 	return strings.ToUpper(s[0:1]) + s[1:]
+}
+
+func cleanContractName(s string) string {
+	return upperFirst(regexp.MustCompile(`[\W]+`).ReplaceAllString(s, ""))
 }

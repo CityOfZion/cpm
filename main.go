@@ -20,10 +20,11 @@ var (
 	TOOL_NEO_GO      = "neo-go"
 	TOOL_NEO_EXPRESS = "neo-express"
 
-	LANG_GO     = "go"
-	LANG_PYTHON = "python"
-	LANG_JAVA   = "java"
-	LANG_CSHARP = "csharp"
+	LANG_GO         = "go"
+	LANG_PYTHON     = "python"
+	LANG_JAVA       = "java"
+	LANG_CSHARP     = "csharp"
+	LANG_TYPESCRIPT = "ts"
 
 	LOG_INFO  = "INFO"
 	LOG_DEBUG = "DEBUG"
@@ -120,7 +121,7 @@ func main() {
 				Subcommands: []*cli.Command{
 					{
 						Name:  LANG_GO,
-						Usage: "Generate an SDK for use with Golang",
+						Usage: "Generate an on-chain SDK for use with Golang",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_GO)
 						},
@@ -132,7 +133,7 @@ func main() {
 					},
 					{
 						Name:  LANG_PYTHON,
-						Usage: "Generate an SDK for use with Python",
+						Usage: "Generate an on-chain SDK for use with Python",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_PYTHON)
 						},
@@ -144,7 +145,7 @@ func main() {
 					},
 					{
 						Name:  LANG_JAVA,
-						Usage: "Generate an SDK for use with Java",
+						Usage: "Generate an on-chain SDK for use with Java",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_JAVA)
 						},
@@ -156,9 +157,21 @@ func main() {
 					},
 					{
 						Name:  LANG_CSHARP,
-						Usage: "Generate an SDK for use with C#",
+						Usage: "Generate an on-chain SDK for use with C#",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_CSHARP)
+						},
+						Flags: []cli.Flag{
+							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
+							&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
+							&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
+						},
+					},
+					{
+						Name:  LANG_TYPESCRIPT,
+						Usage: "Generate an off-chain SDK for use with TypeScript",
+						Action: func(c *cli.Context) error {
+							return handleCliGenerate(c, LANG_TYPESCRIPT)
 						},
 						Flags: []cli.Flag{
 							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
@@ -468,6 +481,8 @@ func generateSDK(m *manifest.Manifest, scriptHash util.Uint160, language string,
 		err = generators.GenerateCsharpSDK(&cfg)
 	} else if language == LANG_GO {
 		err = generators.GenerateGoSDK(&cfg)
+	} else if language == LANG_TYPESCRIPT {
+		err = generators.GenerateTypeScriptSDK(&cfg)
 	} else {
 		log.Fatalf("language '%s' is unsupported", language)
 	}
