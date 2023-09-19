@@ -3,6 +3,8 @@ package generators
 import (
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 	"text/template"
 
 	"github.com/iancoleman/strcase"
@@ -189,7 +191,8 @@ func GenerateTypeScriptSDK(cfg *GenerateCfg) error {
 		return fmt.Errorf("failed to parse manifest into contract template: %v", err)
 	}
 
-	sdkDir := cfg.SdkDestination + ctr.ContractName
+	folderName := strings.ToLower(strings.Join(regexp.MustCompile(`[\W]+`).Split(cfg.Manifest.Name, -1), "-"))
+	sdkDir := cfg.SdkDestination + folderName
 	err = os.MkdirAll(sdkDir, 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", sdkDir, err)
@@ -214,7 +217,7 @@ func GenerateTypeScriptSDK(cfg *GenerateCfg) error {
 	if err != nil {
 		return fmt.Errorf("failed to get working directory: %v", err)
 	}
-	sdkLocation := wd + "/" + cfg.SdkDestination + upperFirst(cfg.Manifest.Name)
+	sdkLocation := wd + "/" + cfg.SdkDestination + folderName
 	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
 
 	return nil

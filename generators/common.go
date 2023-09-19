@@ -114,8 +114,7 @@ func templateFromManifest(cfg *GenerateCfg) (contractTmpl, error) {
 		name := event.Name
 
 		evt := eventTmpl{
-			Name:    name,
-			NameABI: event.Name,
+			Name: name,
 		}
 
 		for i := range event.Parameters {

@@ -24,7 +24,7 @@ var (
 	LANG_PYTHON     = "python"
 	LANG_JAVA       = "java"
 	LANG_CSHARP     = "csharp"
-	LANG_TYPESCRIPT = "typescript"
+	LANG_TYPESCRIPT = "ts"
 
 	LOG_INFO  = "INFO"
 	LOG_DEBUG = "DEBUG"
@@ -121,7 +121,7 @@ func main() {
 				Subcommands: []*cli.Command{
 					{
 						Name:  LANG_GO,
-						Usage: "Generate an SDK for use with Golang",
+						Usage: "Generate an on-chain SDK for use with Golang",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_GO)
 						},
@@ -133,7 +133,7 @@ func main() {
 					},
 					{
 						Name:  LANG_PYTHON,
-						Usage: "Generate an SDK for use with Python",
+						Usage: "Generate an on-chain SDK for use with Python",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_PYTHON)
 						},
@@ -145,7 +145,7 @@ func main() {
 					},
 					{
 						Name:  LANG_JAVA,
-						Usage: "Generate an SDK for use with Java",
+						Usage: "Generate an on-chain SDK for use with Java",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_JAVA)
 						},
@@ -157,7 +157,7 @@ func main() {
 					},
 					{
 						Name:  LANG_CSHARP,
-						Usage: "Generate an SDK for use with C#",
+						Usage: "Generate an on-chain SDK for use with C#",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_CSHARP)
 						},
@@ -169,7 +169,7 @@ func main() {
 					},
 					{
 						Name:  LANG_TYPESCRIPT,
-						Usage: "Generate an SDK for use with TypeScript",
+						Usage: "Generate an off-chain SDK for use with TypeScript",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_TYPESCRIPT)
 						},
