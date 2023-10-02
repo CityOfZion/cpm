@@ -3,6 +3,11 @@ package main
 import (
 	"context"
 	"cpm/generators"
+	"cpm/generators/csharp"
+	"cpm/generators/golang"
+	"cpm/generators/java"
+	"cpm/generators/python"
+	"cpm/generators/typescript"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -481,15 +486,18 @@ func generateSDK(m *manifest.Manifest, scriptHash util.Uint160, language string,
 
 	var err error
 	if language == LANG_PYTHON {
-		err = generators.GeneratePythonSDK(&cfg)
+		if 1 == 2 {
+			err = python.GenerateOffchainPythonSDK()
+		}
+		err = python.GeneratePythonSDK(&cfg)
 	} else if language == LANG_JAVA {
-		err = generators.GenerateJavaSDK(&cfg)
+		err = java.GenerateJavaSDK(&cfg)
 	} else if language == LANG_CSHARP {
-		err = generators.GenerateCsharpSDK(&cfg)
+		err = csharp.GenerateCsharpSDK(&cfg)
 	} else if language == LANG_GO {
-		err = generators.GenerateGoSDK(&cfg)
+		err = golang.GenerateGoSDK(&cfg)
 	} else if language == LANG_TYPESCRIPT {
-		err = generators.GenerateTypeScriptSDK(&cfg)
+		err = typescript.GenerateTypeScriptSDK(&cfg)
 	} else {
 		log.Fatalf("language '%s' is unsupported", language)
 	}

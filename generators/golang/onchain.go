@@ -1,6 +1,7 @@
-package generators
+package golang
 
 import (
+	"cpm/generators"
 	"fmt"
 	"os"
 	"strings"
@@ -9,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GenerateGoSDK(cfg *GenerateCfg) error {
+func GenerateGoSDK(cfg *generators.GenerateCfg) error {
 	goconfig := binding.NewConfig()
 	goconfig.Manifest = cfg.Manifest
 	goconfig.Hash = cfg.ContractHash

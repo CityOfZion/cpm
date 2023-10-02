@@ -1,6 +1,7 @@
-package generators
+package csharp
 
 import (
+	"cpm/generators"
 	"fmt"
 	"os"
 	"text/template"
@@ -39,7 +40,7 @@ namespace cpm {
 }
 `
 
-func GenerateCsharpSDK(cfg *GenerateCfg) error {
+func GenerateCsharpSDK(cfg *generators.GenerateCfg) error {
 	err := createCsharpPackage(cfg)
 	defer cfg.ContractOutput.Close()
 	if err != nil {
@@ -48,7 +49,7 @@ func GenerateCsharpSDK(cfg *GenerateCfg) error {
 
 	cfg.MethodNameConverter = strcase.ToCamel
 	cfg.ParamTypeConverter = scTypeToCsharp
-	ctr, err := templateFromManifest(cfg)
+	ctr, err := generators.TemplateFromManifest(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to parse manifest into contract template: %v", err)
 	}
@@ -68,20 +69,20 @@ func GenerateCsharpSDK(cfg *GenerateCfg) error {
 		return fmt.Errorf("failed to get working directory: %v", err)
 	}
 
-	sdkLocation := wd + "/" + cfg.SdkDestination + upperFirst(cfg.Manifest.Name) + ".cs"
+	sdkLocation := wd + "/" + cfg.SdkDestination + generators.UpperFirst(cfg.Manifest.Name) + ".cs"
 	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
 
 	return nil
 }
 
-func createCsharpPackage(cfg *GenerateCfg) error {
+func createCsharpPackage(cfg *generators.GenerateCfg) error {
 	dir := cfg.SdkDestination
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", dir, err)
 	}
 
-	filename := upperFirst(cfg.Manifest.Name)
+	filename := generators.UpperFirst(cfg.Manifest.Name)
 	f, err := os.Create(fmt.Sprintf(dir+"%s.cs", filename))
 	if err != nil {
 		f.Close()

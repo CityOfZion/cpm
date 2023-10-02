@@ -1,6 +1,7 @@
-package generators
+package python
 
 import (
+	"cpm/generators"
 	"fmt"
 	"os"
 	"strings"
@@ -48,7 +49,7 @@ class {{ .ContractName }}:
 {{ template "METHOD" $m -}}
 {{end}}`
 
-func GeneratePythonSDK(cfg *GenerateCfg) error {
+func GeneratePythonSDK(cfg *generators.GenerateCfg) error {
 	err := createPythonPackage(cfg)
 	defer cfg.ContractOutput.Close()
 	if err != nil {
@@ -57,7 +58,7 @@ func GeneratePythonSDK(cfg *GenerateCfg) error {
 
 	cfg.MethodNameConverter = strcase.ToSnake
 	cfg.ParamTypeConverter = scTypeToPython
-	ctr, err := templateFromManifest(cfg)
+	ctr, err := generators.TemplateFromManifest(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to parse manifest into contract template: %v", err)
 	}
@@ -76,14 +77,14 @@ func GeneratePythonSDK(cfg *GenerateCfg) error {
 	if err != nil {
 		return fmt.Errorf("failed to get working directory: %v", err)
 	}
-	sdkLocation := wd + "/" + cfg.SdkDestination + upperFirst(cfg.Manifest.Name)
+	sdkLocation := wd + "/" + cfg.SdkDestination + generators.UpperFirst(cfg.Manifest.Name)
 	log.Infof("Created SDK for contract '%s' at %s with contract hash 0x%s", cfg.Manifest.Name, sdkLocation, cfg.ContractHash.StringLE())
 
 	return nil
 }
 
 // create the Python package structure and set the ContractOutput to the open file handle
-func createPythonPackage(cfg *GenerateCfg) error {
+func createPythonPackage(cfg *generators.GenerateCfg) error {
 	sdkDir := cfg.SdkDestination + strings.ToLower(cfg.Manifest.Name)
 	err := os.MkdirAll(sdkDir, 0755)
 	if err != nil {
