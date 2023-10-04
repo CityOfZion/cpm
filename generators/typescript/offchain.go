@@ -72,7 +72,7 @@ const typescriptSrcClassTmpl = `
 {{- define "ITERATORGENERATORMETHOD" }}
 	async* {{if not .Safe}}test{{ UpperFirst .Name }}{{else}}{{ .Name }}{{end}}({{if .Arguments}}params: { {{range $index, $arg := .Arguments -}}
 		{{- if ne $index 0}}, {{end}}{{- .Name}}: {{.Type}}
-	{{- end}} } {{end}}): AsyncGenerator {
+	{{- end}} }, {{end}}itemsPerRequest: number = 20): AsyncGenerator<any[], void> {
 		const res = await this.config.invoker.testInvoke({
 			invocations: [Invocation.{{ .Name }}API(this.config.scriptHash{{if .Arguments}}, params, this.config.parser{{end}})],
 			signers: [],
@@ -80,14 +80,18 @@ const typescriptSrcClassTmpl = `
 
 		if (res.stack.length !== 0 && res.session !== undefined && typeChecker.isStackTypeInteropInterface(res.stack[0])) {
 
-			let iterator = await this.config.invoker.traverseIterator(res.session, res.stack[0].id, 1)
+			let iterator = await this.config.invoker.traverseIterator(res.session, res.stack[0].id, itemsPerRequest)
 
 			while (iterator.length !== 0){
 				if (typeChecker.isStackTypeInteropInterface(iterator[0])){
 					throw new Error(res.exception ?? 'can not have an iterator inside another iterator')
 				}else{
-					yield this.config.parser.parseRpcResponse(iterator[0])
-					iterator = await this.config.invoker.traverseIterator(res.session, res.stack[0].id, 1)
+					const iteratorValues = iterator.map((item) => {
+						return this.config.parser.parseRpcResponse(item)
+					})
+
+					yield iteratorValues
+					iterator = await this.config.invoker.traverseIterator(res.session, res.stack[0].id, itemsPerRequest)
 				}
 			}
 		}
