@@ -35,6 +35,9 @@ var (
 	LOG_DEBUG = "DEBUG"
 
 	DEFAULT_CONFIG_FILE = "cpm.yaml"
+
+	SDK_OFFCHAIN = "offchain"
+	SDK_ONCHAIN  = "onchain"
 )
 
 var GenerateCommandHelpTemplate = `NAME:
@@ -146,6 +149,14 @@ func main() {
 							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
 							&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
+							&cli.GenericFlag{
+								Name:     "t",
+								Usage:    "SDK type",
+								Required: true,
+								Value: &EnumValue{
+									Enum: []string{SDK_OFFCHAIN, SDK_ONCHAIN},
+								},
+							},
 						},
 					},
 					{
@@ -405,6 +416,8 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 		dest = EnsureSuffix(dest)
 	}
 
+	sdkType := cCtx.String("t")
+
 	scriptHash := util.Uint160{}
 	scriptHashStr := cCtx.String("c")
 	if scriptHashStr != "" {
@@ -413,8 +426,7 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 			log.Fatalf("failed to convert script hash: %v", err)
 		}
 	}
-
-	return generateSDK(m, scriptHash, language, dest)
+	return generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: scriptHash, SdkDestination: dest}, language, sdkType)
 }
 
 func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
@@ -427,15 +439,19 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 	if c.OnChain != nil {
 		languages = c.OnChain.Languages
 	}
-
-	if c.OffChain != nil {
-		languages = append(languages, c.OffChain.Languages...)
-	} else {
-		languages = append(languages, cfg.Defaults.OffChain.Languages...)
+	for _, l := range languages {
+		err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l)}, l, SDK_ONCHAIN)
+		if err != nil {
+			return err
+		}
 	}
 
+	languages = cfg.Defaults.OffChain.Languages
+	if c.OffChain != nil {
+		languages = c.OffChain.Languages
+	}
 	for _, l := range languages {
-		err = generateSDK(m, c.ScriptHash, l, cfg.getSdkDestination(l))
+		err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l)}, l, SDK_OFFCHAIN)
 		if err != nil {
 			return err
 		}
@@ -477,27 +493,18 @@ func readManifest(filename string) (*manifest.Manifest, []byte, error) {
 	return m, manifestBytes, nil
 }
 
-func generateSDK(m *manifest.Manifest, scriptHash util.Uint160, language string, outputDestination string) error {
-	cfg := generators.GenerateCfg{
-		Manifest:       m,
-		ContractHash:   scriptHash,
-		SdkDestination: outputDestination,
-	}
-
+func generateSDK(cfg *generators.GenerateCfg, language, sdkType string) error {
 	var err error
 	if language == LANG_PYTHON {
-		if 1 == 2 {
-			err = python.GenerateOffchainPythonSDK()
-		}
-		err = python.GeneratePythonSDK(&cfg)
+		err = python.GenerateSDK(cfg, sdkType)
 	} else if language == LANG_JAVA {
-		err = java.GenerateJavaSDK(&cfg)
+		err = java.GenerateJavaSDK(cfg)
 	} else if language == LANG_CSHARP {
-		err = csharp.GenerateCsharpSDK(&cfg)
+		err = csharp.GenerateCsharpSDK(cfg)
 	} else if language == LANG_GO {
-		err = golang.GenerateGoSDK(&cfg)
+		err = golang.GenerateGoSDK(cfg)
 	} else if language == LANG_TYPESCRIPT {
-		err = typescript.GenerateTypeScriptSDK(&cfg)
+		err = typescript.GenerateTypeScriptSDK(cfg)
 	} else {
 		log.Fatalf("language '%s' is unsupported", language)
 	}

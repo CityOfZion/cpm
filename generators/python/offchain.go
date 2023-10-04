@@ -1,8 +1,11 @@
 package python
 
-import "fmt"
+import (
+	"cpm/generators"
+	"fmt"
+)
 
-func GenerateOffchainPythonSDK() error {
+func generateOffchainSDK(cfg *generators.GenerateCfg) error {
 	fmt.Println("python offchain sdk!")
 	return nil
 }

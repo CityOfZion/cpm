@@ -49,7 +49,7 @@ class {{ .ContractName }}:
 {{ template "METHOD" $m -}}
 {{end}}`
 
-func GeneratePythonSDK(cfg *generators.GenerateCfg) error {
+func generateOnchainSDK(cfg *generators.GenerateCfg) error {
 	err := createPythonPackage(cfg)
 	defer cfg.ContractOutput.Close()
 	if err != nil {
