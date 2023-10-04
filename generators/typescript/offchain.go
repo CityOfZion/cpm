@@ -1,6 +1,7 @@
-package generators
+package typescript
 
 import (
+	"cpm/generators"
 	"fmt"
 	"os"
 	"regexp"
@@ -69,7 +70,7 @@ const typescriptSrcClassTmpl = `
 	}
 {{- end -}}
 {{- define "ITERATORGENERATORMETHOD" }}
-	async* {{if not .Safe}}test{{ upperFirst .Name }}{{else}}{{ .Name }}{{end}}({{if .Arguments}}params: { {{range $index, $arg := .Arguments -}}
+	async* {{if not .Safe}}test{{ UpperFirst .Name }}{{else}}{{ .Name }}{{end}}({{if .Arguments}}params: { {{range $index, $arg := .Arguments -}}
 		{{- if ne $index 0}}, {{end}}{{- .Name}}: {{.Type}}
 	{{- end}} }, {{end}}itemsPerRequest: number = 20): AsyncGenerator<any[], void> {
 		const res = await this.config.invoker.testInvoke({
@@ -100,7 +101,7 @@ const typescriptSrcClassTmpl = `
 	}
 {{- end -}}
 {{- define "TESTINVOKEMETHOD" }}
-	async {{if not .Safe}}test{{ upperFirst .Name }}{{else}}{{ .Name }}{{end}}({{if .Arguments}}params: { {{range $index, $arg := .Arguments -}}
+	async {{if not .Safe}}test{{ UpperFirst .Name }}{{else}}{{ .Name }}{{end}}({{if .Arguments}}params: { {{range $index, $arg := .Arguments -}}
 		{{- if ne $index 0}}, {{end}}{{- .Name}}: {{.Type}}
 	{{- end}} } {{end}}){{if .ReturnType }}: Promise<{{ .ReturnType }}>{{ else }} {{end}}{
 		const res = await this.config.invoker.testInvoke({
@@ -125,7 +126,7 @@ const typescriptSrcClassTmpl = `
 	{{- end -}}
 {{- end -}}
 {{- define "EVENTLISTENER" }}
-	async confirm{{ upperFirst .Name }}Event(txId: string): Promise<void>{
+	async confirm{{ UpperFirst .Name }}Event(txId: string): Promise<void>{
 		if (!this.config.eventListener) throw new Error('EventListener not provided')
 
 		const txResult = await this.config.eventListener.waitForApplicationLog(txId)
@@ -134,13 +135,13 @@ const typescriptSrcClassTmpl = `
 		)
 	}
 
-	listen{{ upperFirst .Name }}Event(callback: Neo3EventListenerCallback): void{
+	listen{{ UpperFirst .Name }}Event(callback: Neo3EventListenerCallback): void{
 		if (!this.config.eventListener) throw new Error('EventListener not provided')
 		
 		this.config.eventListener.addEventListener(this.config.scriptHash, '{{ .Name }}', callback)
 	}
 
-	remove{{ upperFirst .Name }}EventListener(callback: Neo3EventListenerCallback): void{
+	remove{{ UpperFirst .Name }}EventListener(callback: Neo3EventListenerCallback): void{
 		if (!this.config.eventListener) throw new Error('EventListener not provided')
 		
 		this.config.eventListener.removeEventListener(this.config.scriptHash, '{{ .Name }}', callback)
@@ -187,10 +188,10 @@ export class {{ .ContractName }}{
 const typescriptSrcIndexTmpl = `export * from './{{ .ContractName }}'
 export * from './api'`
 
-func GenerateTypeScriptSDK(cfg *GenerateCfg) error {
+func GenerateTypeScriptSDK(cfg *generators.GenerateCfg) error {
 	cfg.MethodNameConverter = strcase.ToLowerCamel
 	cfg.ParamTypeConverter = scTypeToTypeScript
-	ctr, err := templateFromManifest(cfg)
+	ctr, err := generators.TemplateFromManifest(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to parse manifest into contract template: %v", err)
 	}
@@ -227,7 +228,7 @@ func GenerateTypeScriptSDK(cfg *GenerateCfg) error {
 	return nil
 }
 
-func generateTypeScriptSdkFile(cfg *GenerateCfg, ctr contractTmpl, sdkDir string, fileName string, templateString string) error {
+func generateTypeScriptSdkFile(cfg *generators.GenerateCfg, ctr generators.ContractTmpl, sdkDir string, fileName string, templateString string) error {
 	err := createTypeScriptSdkFile(cfg, sdkDir, fileName)
 	defer cfg.ContractOutput.Close()
 	if err != nil {
@@ -235,7 +236,7 @@ func generateTypeScriptSdkFile(cfg *GenerateCfg, ctr contractTmpl, sdkDir string
 	}
 
 	funcMap := template.FuncMap{
-		"upperFirst": upperFirst,
+		"UpperFirst": generators.UpperFirst,
 	}
 
 	tmp, err := template.New("generate").Funcs(funcMap).Parse(templateString)
@@ -251,7 +252,7 @@ func generateTypeScriptSdkFile(cfg *GenerateCfg, ctr contractTmpl, sdkDir string
 	return nil
 }
 
-func createTypeScriptSdkFile(cfg *GenerateCfg, sdkDir string, fileName string) error {
+func createTypeScriptSdkFile(cfg *generators.GenerateCfg, sdkDir string, fileName string) error {
 	f, err := os.Create(sdkDir + "/" + fileName + ".ts")
 	if err != nil {
 		f.Close()

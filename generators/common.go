@@ -26,7 +26,7 @@ type (
 		SdkDestination      string
 	}
 
-	contractTmpl struct {
+	ContractTmpl struct {
 		ContractName string
 		Imports      []string
 		Hash         string
@@ -59,8 +59,8 @@ type (
 	convertParam func(typ smartcontract.ParamType) string
 )
 
-func templateFromManifest(cfg *GenerateCfg) (contractTmpl, error) {
-	ctr := contractTmpl{
+func TemplateFromManifest(cfg *GenerateCfg) (ContractTmpl, error) {
+	ctr := ContractTmpl{
 		ContractName: cleanContractName(cfg.Manifest.Name),
 		Hash:         "0x" + cfg.ContractHash.StringLE(),
 	}
@@ -136,10 +136,10 @@ func templateFromManifest(cfg *GenerateCfg) (contractTmpl, error) {
 	return ctr, nil
 }
 
-func upperFirst(s string) string {
+func UpperFirst(s string) string {
 	return strings.ToUpper(s[0:1]) + s[1:]
 }
 
 func cleanContractName(s string) string {
-	return upperFirst(regexp.MustCompile(`[\W]+`).ReplaceAllString(s, ""))
+	return UpperFirst(regexp.MustCompile(`[\W]+`).ReplaceAllString(s, ""))
 }

@@ -1,6 +1,7 @@
-package generators
+package java
 
 import (
+	"cpm/generators"
 	"fmt"
 	"os"
 	"strings"
@@ -38,7 +39,7 @@ public class {{ .ContractName }} extends ContractInterface {
 }
 `
 
-func GenerateJavaSDK(cfg *GenerateCfg) error {
+func GenerateJavaSDK(cfg *generators.GenerateCfg) error {
 	err := createJavaPackage(cfg)
 	defer cfg.ContractOutput.Close()
 	if err != nil {
@@ -47,7 +48,7 @@ func GenerateJavaSDK(cfg *GenerateCfg) error {
 
 	cfg.MethodNameConverter = strcase.ToLowerCamel
 	cfg.ParamTypeConverter = scTypeToJava
-	ctr, err := templateFromManifest(cfg)
+	ctr, err := generators.TemplateFromManifest(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to parse manifest into contract template: %v", err)
 	}
@@ -73,14 +74,14 @@ func GenerateJavaSDK(cfg *GenerateCfg) error {
 	return nil
 }
 
-func createJavaPackage(cfg *GenerateCfg) error {
+func createJavaPackage(cfg *generators.GenerateCfg) error {
 	dir := cfg.SdkDestination
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return fmt.Errorf("can't create directory %s: %w", dir, err)
 	}
 
-	filename := upperFirst(cfg.Manifest.Name)
+	filename := generators.UpperFirst(cfg.Manifest.Name)
 	f, err := os.Create(fmt.Sprintf(dir+"%s.java", filename))
 	if err != nil {
 		f.Close()
