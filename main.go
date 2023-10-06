@@ -437,7 +437,7 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 }
 
 func handleCliVersion(cCtx *cli.Context) error {
-	fmt.Printf("cpm %s", version)
+	fmt.Printf("cpm %s\n", version)
 	return nil
 }
 
