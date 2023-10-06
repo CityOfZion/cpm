@@ -38,6 +38,8 @@ var (
 
 	SDK_OFFCHAIN = "offchain"
 	SDK_ONCHAIN  = "onchain"
+
+	version = "dev"
 )
 
 var GenerateCommandHelpTemplate = `NAME:
@@ -196,6 +198,11 @@ func main() {
 						},
 					},
 				},
+			},
+			{
+				Name:   "version",
+				Usage:  "Shows CPM version",
+				Action: handleCliVersion,
 			},
 		},
 	}
@@ -427,6 +434,11 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 		}
 	}
 	return generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: scriptHash, SdkDestination: dest}, language, sdkType)
+}
+
+func handleCliVersion(cCtx *cli.Context) error {
+	fmt.Printf("cpm %s\n", version)
+	return nil
 }
 
 func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
