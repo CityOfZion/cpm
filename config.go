@@ -121,43 +121,38 @@ func (c *CPMConfig) getHosts(networkLabel string) []string {
 	return nil
 }
 
-func (c *CPMConfig) getSdkDestination(forLanguage string) string {
-	// TODO: this is a bit of a hack
-	// Resolve this properly once we have a second language that can do off-chain generation or a language that supports both
-	if forLanguage == LANG_TYPESCRIPT {
-		if c.Defaults.OffChain == nil {
-			return generators.OutputRoot + forLanguage + "/"
-		}
+func (c *CPMConfig) getSdkDestination(forLanguage string, sdkType string) string {
+	var sdkTypePath SdkDestination
+	if sdkType == SDK_ONCHAIN {
+		sdkTypePath = c.Defaults.OnChain.SdkDestinations
 	} else {
-		if c.Defaults.OnChain == nil {
-			return generators.OutputRoot + forLanguage + "/"
-		}
+		sdkTypePath = c.Defaults.OffChain.SdkDestinations
 	}
 
-	defaultLocation := generators.OutputRoot + forLanguage + "/"
+	defaultLocation := generators.OutputRoot + sdkType + "/" + forLanguage + "/"
 	switch forLanguage {
 	case LANG_PYTHON:
-		if path := c.Defaults.OnChain.SdkDestinations.Python; path != nil {
+		if path := sdkTypePath.Python; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_GO:
-		if path := c.Defaults.OnChain.SdkDestinations.Golang; path != nil {
+		if path := sdkTypePath.Golang; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_JAVA:
-		if path := c.Defaults.OnChain.SdkDestinations.Java; path != nil {
+		if path := sdkTypePath.Java; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_CSHARP:
-		if path := c.Defaults.OnChain.SdkDestinations.Csharp; path != nil {
+		if path := sdkTypePath.Csharp; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation
 	case LANG_TYPESCRIPT:
-		if path := c.Defaults.OffChain.SdkDestinations.TS; path != nil {
+		if path := sdkTypePath.TS; path != nil {
 			return EnsureSuffix(*path)
 		}
 		return defaultLocation

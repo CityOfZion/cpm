@@ -408,15 +408,15 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 		log.Fatalf("can't read contract manifest: %s", err)
 	}
 
+	sdkType := cCtx.String("t")
+
 	dest := cCtx.String("o")
 	if dest == "" {
 		LoadConfig()
-		dest = cfg.getSdkDestination(language)
+		dest = cfg.getSdkDestination(language, sdkType)
 	} else {
 		dest = EnsureSuffix(dest)
 	}
-
-	sdkType := cCtx.String("t")
 
 	scriptHash := util.Uint160{}
 	scriptHashStr := cCtx.String("c")
@@ -435,25 +435,29 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 		return err
 	}
 
-	languages := cfg.Defaults.OnChain.Languages
-	if c.OnChain != nil {
-		languages = c.OnChain.Languages
-	}
-	for _, l := range languages {
-		err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l)}, l, SDK_ONCHAIN)
-		if err != nil {
-			return err
+	if cfg.Defaults.OnChain != nil {
+		languages := cfg.Defaults.OnChain.Languages
+		if c.OnChain != nil {
+			languages = c.OnChain.Languages
+		}
+		for _, l := range languages {
+			err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l, SDK_ONCHAIN)}, l, SDK_ONCHAIN)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	languages = cfg.Defaults.OffChain.Languages
-	if c.OffChain != nil {
-		languages = c.OffChain.Languages
-	}
-	for _, l := range languages {
-		err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l)}, l, SDK_OFFCHAIN)
-		if err != nil {
-			return err
+	if cfg.Defaults.OffChain != nil {
+		languages := cfg.Defaults.OffChain.Languages
+		if c.OffChain != nil {
+			languages = c.OffChain.Languages
+		}
+		for _, l := range languages {
+			err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l, SDK_OFFCHAIN)}, l, SDK_OFFCHAIN)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
