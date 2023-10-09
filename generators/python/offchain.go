@@ -104,20 +104,20 @@ func createOffChainPythonPackage(cfg *generators.GenerateCfg) error {
 	sdkDir := cfg.SdkDestination + strings.ReplaceAll(strings.ToLower(cfg.Manifest.Name), " ", "_")
 	err := os.MkdirAll(sdkDir, 0755)
 	if err != nil {
-		return fmt.Errorf("can't create directory %s: %w", sdkDir, err)
+		return fmt.Errorf("can't create off-chain directory %s: %w", sdkDir, err)
 	}
 
 	f, err := os.Create(sdkDir + "/__init__.py")
 	if err != nil {
 		f.Close()
-		return fmt.Errorf("can't create __init__.py file: %w", err)
+		return fmt.Errorf("can't create off-chain __init__.py file: %w", err)
 	}
 	f.Close()
 
-	f, err = os.Create(sdkDir + "/contract_off_chain_sdk.py")
+	f, err = os.Create(sdkDir + "/contract.py")
 	if err != nil {
 		f.Close()
-		return fmt.Errorf("can't create contract_off_chain_sdk.py file: %w", err)
+		return fmt.Errorf("can't create off-chain contract.py file: %w", err)
 	} else {
 		cfg.ContractOutput = f
 	}

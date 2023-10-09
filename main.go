@@ -141,7 +141,7 @@ func main() {
 					},
 					{
 						Name:  LANG_PYTHON,
-						Usage: "Generate an on-chain SDK for use with Python",
+						Usage: "Generate a SDK for use with Python",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_PYTHON)
 						},
