@@ -5,13 +5,21 @@ defaults:
   contract-generate-sdk: false
   # settings related to SDK generation for on chain contracts
   on-chain:
-    # both languages and destinations take the same keys values: csharp, go, java or python
+    # both languages and destinations take the same key values: csharp, go, java or python
     languages:
     - python
-    # if no destination is given for a specific language it will output to ./cpm_out/<language>/<sdk name>
-#    destinations:
-#      python: <python_sdk_output_dir>
-#      java: <java_sdk_output_dir>
+    # if no destination is given for a specific language it will output to ./cpm_out/onchain/<language>/<sdk name>
+    # destinations:
+    #   python: <python_sdk_output_dir>
+    #   java: <java_sdk_output_dir>
+  off-chain:
+    # both languages and destinations take the same key values: ts or python
+    languages:
+    - python
+    # if no destination is given for a specific language it will output to ./cpm_out/offchain/<language>/<sdk name>
+    # destinations:
+    #   python: <python_sdk_output_dir>
+    #   ts: <ts_sdk_output_dir>
 
 
 # which contracts to download with what options
