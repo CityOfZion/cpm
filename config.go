@@ -122,14 +122,25 @@ func (c *CPMConfig) getHosts(networkLabel string) []string {
 }
 
 func (c *CPMConfig) getSdkDestination(forLanguage string, sdkType string) string {
+	defaultLocation := generators.OutputRoot + sdkType + "/" + forLanguage + "/"
+
+	if c == nil {
+		return defaultLocation
+	}
+
 	var sdkTypePath SdkDestination
 	if sdkType == SDK_ONCHAIN {
+		if c.Defaults.OnChain == nil {
+			return defaultLocation
+		}
 		sdkTypePath = c.Defaults.OnChain.SdkDestinations
 	} else {
+		if c.Defaults.OffChain == nil {
+			return defaultLocation
+		}
 		sdkTypePath = c.Defaults.OffChain.SdkDestinations
 	}
 
-	defaultLocation := generators.OutputRoot + sdkType + "/" + forLanguage + "/"
 	switch forLanguage {
 	case LANG_PYTHON:
 		if path := sdkTypePath.Python; path != nil {
