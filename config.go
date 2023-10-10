@@ -129,7 +129,7 @@ func (c *CPMConfig) getSdkDestination(forLanguage string, sdkType string) string
 	}
 
 	var sdkTypePath SdkDestination
-	if sdkType == SDK_ONCHAIN {
+	if sdkType == generators.SDK_ONCHAIN {
 		if c.Defaults.OnChain == nil {
 			return defaultLocation
 		}

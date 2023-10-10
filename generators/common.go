@@ -12,7 +12,11 @@ import (
 	"github.com/nspcc-dev/neo-go/pkg/util"
 )
 
-const OutputRoot = "cpm_out/"
+const (
+	OutputRoot   = "cpm_out/"
+	SDK_OFFCHAIN = "offchain"
+	SDK_ONCHAIN  = "onchain"
+)
 
 // Big chunks of code gracefully borrowed from neo-go <3 with some adjustments
 
