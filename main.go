@@ -81,12 +81,8 @@ func main() {
 				Action: handleCliInit,
 			},
 			{
-				Name:  "run",
-				Usage: "Download all contracts from cpm.yaml and generate SDKs where specified",
-				Flags: []cli.Flag{
-					&cli.BoolFlag{Name: "download-only", Usage: "Override config settings to only download contracts and storage", Required: false},
-					&cli.BoolFlag{Name: "sdk-only", Usage: "Override config settings to only generate SDKs", Required: false},
-				},
+				Name:   "run",
+				Usage:  "Download all contracts from cpm.yaml and generate SDKs where specified",
 				Action: handleCliRun,
 			},
 			{
@@ -219,15 +215,6 @@ func handleCliInit(*cli.Context) error {
 }
 
 func handleCliRun(cCtx *cli.Context) error {
-	sdkOnly := cCtx.Bool("sdk-only")
-	downloadOnly := cCtx.Bool("download-only")
-	downloadContracts := !sdkOnly
-	generateSDKs := !downloadOnly
-
-	if sdkOnly && downloadOnly {
-		log.Fatal("sdk-only and download-only flags are mutually exclusive.")
-	}
-
 	LoadConfig()
 
 	var downloader Downloader
@@ -236,50 +223,45 @@ func handleCliRun(cCtx *cli.Context) error {
 
 	for _, c := range cfg.Contracts {
 		log.Infof("Processing contract '%s' (%s)", c.Label, c.ScriptHash.StringLE())
-
 		hosts := cfg.getHosts(*c.SourceNetwork)
 
-		success := false
-		generateSuccess := false
-		skipGenerate := *c.ContractGenerateSdk == false
-		for _, host := range hosts {
-			if downloadContracts {
+		if *c.Download {
+			downloadSuccess := false
+			for _, host := range hosts {
 				log.Debugf("Attempting to download contract '%s' (%s) using NEOXP from network %s", c.Label, c.ScriptHash.StringLE(), host)
 				message, err := downloader.downloadContract(c.ScriptHash, host)
-				if err != nil {
-					// just log the error we got from the downloader and try the next host
-					log.Debug(message)
-				} else {
+				if err == nil {
 					log.Info(message)
-					success = true
-
-					if generateSDKs && !skipGenerate {
-						err := fetchManifestAndGenerateSDK(&c, host)
-						if err != nil {
-							log.Debug(err)
-						} else {
-							generateSuccess = true
-						}
-					}
+					downloadSuccess = true
 					break
 				}
+				// just log the error we got from the downloader and try the next host
+				log.Debug(message)
 			}
-			if sdkOnly && *c.ContractGenerateSdk {
+
+			if !downloadSuccess {
+				log.Fatalf("Failed to download contract '%s' (%s). Use '--log-level DEBUG' for more information", c.Label, c.ScriptHash)
+			}
+		} else {
+			log.Debugf("Skipping contract download")
+		}
+
+		if *c.GenerateSdk {
+			generateSuccess := false
+			for _, host := range hosts {
 				err := fetchManifestAndGenerateSDK(&c, host)
-				if err != nil {
-					log.Fatal(err)
+				if err == nil {
+					generateSuccess = true
+					break
 				}
-				generateSuccess = true
-				break
+				log.Debug(err)
 			}
-		}
 
-		if downloadContracts && !success {
-			log.Fatalf("Failed to download contract '%s' (%s). Use '--log-level DEBUG' for more information", c.Label, c.ScriptHash)
-		}
-
-		if generateSDKs && !skipGenerate && !generateSuccess {
-			log.Fatalf("Failed to generate SDK for contract '%s' (%s). Use '--log-level DEBUG' for more information", c.Label, c.ScriptHash)
+			if !generateSuccess {
+				log.Fatalf("Failed to generate SDK for contract '%s' (%s). Use '--log-level DEBUG' for more information", c.Label, c.ScriptHash)
+			}
+		} else {
+			log.Debugf("Skipping SDK generation")
 		}
 	}
 
@@ -496,6 +478,7 @@ func fetchManifest(scriptHash *util.Uint160, host string) (*manifest.Manifest, e
 		log.Debug("RPCClient init failed with %v", err)
 		return nil, err
 	}
+	log.Debugf("Attempting to fetch manifest for contract '%s' using %s", scriptHash.StringLE(), host)
 	state, err := client.GetContractStateByHash(*scriptHash)
 	if err != nil {
 		log.Debug("get contractstate failed with %v", err)

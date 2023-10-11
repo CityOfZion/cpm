@@ -4,7 +4,7 @@ import (
 	"cpm/generators"
 	_ "embed"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -15,15 +15,21 @@ import (
 
 //go:embed cpm.yaml.default
 var defaultConfig []byte
-var cfg *CPMConfig
+var cfg = &CPMConfig{
+	Defaults: Defaults{
+		ContractGenerateSdk: false,
+		ContractDownload:    true,
+	},
+}
 
 type ContractConfig struct {
-	Label               string          `yaml:"label"`
-	ScriptHash          util.Uint160    `yaml:"script-hash"`
-	SourceNetwork       *string         `yaml:"source-network,omitempty"`
-	ContractGenerateSdk *bool           `yaml:"contract-generate-sdk,omitempty"`
-	OnChain             *GenerateConfig `yaml:"on-chain,omitempty"`
-	OffChain            *GenerateConfig `yaml:"off-chain,omitempty"`
+	Label         string          `yaml:"label"`
+	ScriptHash    util.Uint160    `yaml:"script-hash"`
+	SourceNetwork *string         `yaml:"source-network,omitempty"`
+	GenerateSdk   *bool           `yaml:"generate-sdk,omitempty"`
+	Download      *bool           `yaml:"download,omitempty"`
+	OnChain       *GenerateConfig `yaml:"on-chain,omitempty"`
+	OffChain      *GenerateConfig `yaml:"off-chain,omitempty"`
 }
 
 type GenerateConfig struct {
@@ -39,14 +45,17 @@ type SdkDestination struct {
 	TS     *string `yaml:"ts,omitempty"`
 }
 
+type Defaults struct {
+	ContractSourceNetwork string          `yaml:"contract-source-network"`
+	ContractDestination   string          `yaml:"contract-destination"`
+	ContractGenerateSdk   bool            `yaml:"contract-generate-sdk"`
+	ContractDownload      bool            `yaml:"contract-download,omitempty"`
+	OnChain               *GenerateConfig `yaml:"on-chain,omitempty"`
+	OffChain              *GenerateConfig `yaml:"off-chain,omitempty"`
+}
+
 type CPMConfig struct {
-	Defaults struct {
-		ContractSourceNetwork string          `yaml:"contract-source-network"`
-		ContractDestination   string          `yaml:"contract-destination"`
-		ContractGenerateSdk   bool            `yaml:"contract-generate-sdk"`
-		OnChain               *GenerateConfig `yaml:"on-chain,omitempty"`
-		OffChain              *GenerateConfig `yaml:"off-chain,omitempty"`
-	} `yaml:"defaults"`
+	Defaults  Defaults         `yaml:"defaults"`
 	Contracts []ContractConfig `yaml:"contracts"`
 	Tools     struct {
 		NeoExpress struct {
@@ -73,7 +82,7 @@ func LoadConfig() {
 	}
 	defer f.Close()
 
-	yamlData, _ := ioutil.ReadAll(f)
+	yamlData, _ := io.ReadAll(f)
 	if err := yaml.Unmarshal(yamlData, &cfg); err != nil {
 		log.Fatal(fmt.Errorf("failed to parse config file: %w", err))
 	}
@@ -83,8 +92,11 @@ func LoadConfig() {
 		if c.SourceNetwork == nil {
 			cfg.Contracts[i].SourceNetwork = &cfg.Defaults.ContractSourceNetwork
 		}
-		if c.ContractGenerateSdk == nil {
-			cfg.Contracts[i].ContractGenerateSdk = &cfg.Defaults.ContractGenerateSdk
+		if c.GenerateSdk == nil {
+			cfg.Contracts[i].GenerateSdk = &cfg.Defaults.ContractGenerateSdk
+		}
+		if c.Download == nil {
+			cfg.Contracts[i].Download = &cfg.Defaults.ContractDownload
 		}
 	}
 }
