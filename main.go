@@ -35,7 +35,6 @@ var (
 	LOG_DEBUG = "DEBUG"
 
 	DEFAULT_CONFIG_FILE = "cpm.yaml"
-
 	SDK_OFFCHAIN = "offchain"
 	SDK_ONCHAIN  = "onchain"
 
@@ -143,7 +142,7 @@ func main() {
 					},
 					{
 						Name:  LANG_PYTHON,
-						Usage: "Generate an on-chain SDK for use with Python",
+						Usage: "Generate a SDK for use with Python",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_PYTHON)
 						},
@@ -156,7 +155,7 @@ func main() {
 								Usage:    "SDK type",
 								Required: true,
 								Value: &EnumValue{
-									Enum: []string{SDK_OFFCHAIN, SDK_ONCHAIN},
+									Enum: []string{generators.SDK_OFFCHAIN, generators.SDK_ONCHAIN},
 								},
 							},
 						},
@@ -415,15 +414,21 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 		log.Fatalf("can't read contract manifest: %s", err)
 	}
 
+	sdkType := cCtx.String("t")
+	if sdkType == "" {
+		if language == LANG_TYPESCRIPT {
+			sdkType = generators.SDK_OFFCHAIN
+		} else {
+			sdkType = generators.SDK_ONCHAIN
+		}
+	}
+
 	dest := cCtx.String("o")
 	if dest == "" {
-		LoadConfig()
-		dest = cfg.getSdkDestination(language)
+		dest = cfg.getSdkDestination(language, sdkType)
 	} else {
 		dest = EnsureSuffix(dest)
 	}
-
-	sdkType := cCtx.String("t")
 
 	scriptHash := util.Uint160{}
 	scriptHashStr := cCtx.String("c")
@@ -441,33 +446,50 @@ func handleCliVersion(cCtx *cli.Context) error {
 	return nil
 }
 
+// must fetch and generate an SDK. Must return an error if generation failed or nothing is generated
 func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 	m, err := fetchManifest(&c.ScriptHash, host)
 	if err != nil {
 		return err
 	}
 
-	languages := cfg.Defaults.OnChain.Languages
+	var onChainLanguages []string = nil
 	if c.OnChain != nil {
-		languages = c.OnChain.Languages
+		onChainLanguages = c.OnChain.Languages
+	} else if cfg.Defaults.OnChain != nil {
+		onChainLanguages = cfg.Defaults.OnChain.Languages
 	}
-	for _, l := range languages {
-		err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l)}, l, SDK_ONCHAIN)
-		if err != nil {
-			return err
+
+	if onChainLanguages != nil {
+		for _, l := range onChainLanguages {
+			err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l, generators.SDK_ONCHAIN)}, l, generators.SDK_ONCHAIN)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	languages = cfg.Defaults.OffChain.Languages
+	var offChainLanguages []string = nil
 	if c.OffChain != nil {
-		languages = c.OffChain.Languages
+		offChainLanguages = c.OffChain.Languages
+	} else if cfg.Defaults.OffChain != nil {
+		offChainLanguages = cfg.Defaults.OffChain.Languages
 	}
-	for _, l := range languages {
-		err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l)}, l, SDK_OFFCHAIN)
-		if err != nil {
-			return err
+
+	if offChainLanguages != nil {
+		for _, l := range offChainLanguages {
+			err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l, generators.SDK_OFFCHAIN)}, l, generators.SDK_OFFCHAIN)
+			if err != nil {
+				return err
+			}
 		}
 	}
+
+	if onChainLanguages == nil && offChainLanguages == nil {
+		return fmt.Errorf("nothing to generate. Ensure your 'cpm.yaml' has an 'onchain' or 'offchain' key under " +
+			"the 'defaults' section or contract specific section with at least one language specified")
+	}
+
 	return nil
 }
 
