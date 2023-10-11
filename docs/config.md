@@ -1,20 +1,21 @@
 `cpm.yaml` is your project configuration file. It holds all information about which contracts it should download,
 from which network and whether it should generate an SDK. Depending on the SDK type generated it allows it to either be
-consumed in the smart contract you're developing (=on-chain), or to be consumed in some backend to interact with the smart
+consumed in the smart contract you're developing (=on-chain), or to be consumed in a backend to interact with the smart
 contract you developed once deployed (=off-chain).
 
 It has 4 major sections which will be described in detail later on
 * `defaults` - this section holds settings that apply to all contracts unless explicitly overridden in the `contracts` section.
-* `contracts` - this section describes which contracts to download with what options.
+* `contracts` - this section describes which contracts to download or generate SDKs for and with what options.
 * `tools` - this section describes the available tools and if they can be used for contract downloading and/or generating SDKs.
 * `networks` - this section holds a list of networks with corresponding RPC server addresses to the networks used for source information downloading.
 
 # defaults
 * `contract-source-network` - describes which network is the source for downloading contracts from. Valid values are [networks.label](#Networks)s.
 * `contract-destination` - describe where the downloaded contract should be persisted. Valid values are [contract-destination](#contract-destination) keys.
-* `contract-generate-sdk` - set to `true` to generate SDKs based on the contract manifest that can be consumed in your smart contract.
-* `on-chain` - describes settings for generating SDKs for use in on chain contracts. See [GenerateConfig](#GenerateConfig)
-* `off-chain` - describes settings for generating off-chain SDKs to interact with on chain contracts. See [GenerateConfig](#GenerateConfig)
+* `contract-download` - set to `true` to download all [contracts](#contracts) to your local chain.
+* `contract-generate-sdk` - set to `true` to generate SDKs for all [contracts](#contracts).
+* `on-chain` - describes settings for generating SDKs for use in on chain contracts. See [GenerateConfig](#GenerateConfig).
+* `off-chain` - describes settings for generating off-chain SDKs to interact with on chain contracts. See [GenerateConfig](#GenerateConfig).
 
 
 ## GenerateConfig
@@ -41,7 +42,8 @@ It has 4 major sections which will be described in detail later on
 * `label` - a user defined label to identify the target contract in the config. Must be a string. Not used elsewhere.
 * `script-hash` - the script hash identifying the contract in `0x<hash>` format. i.e. `0x36d0bf624b90a9dad39d85dcafc83f14dab0272f`.
 * `source-network` - (Optional) overrides the `contract-source-network` setting in `defaults` to set the source for downloading the contract from. Valid values are [networks.label](#Networks)s.
-* `contract-generate-sdk` - (Optional) overrides the `contract-generate-sdk` setting in `defaults` to generate an SDK. Must be a bool value.
+* `generate-sdk` - (Optional) overrides the `contract-generate-sdk` setting in `defaults` to generate an SDK. Must be a bool value.
+* `download` - (Optional) overrides the `contract-download` setting in `defaults` to download a contract to the local chain. Must be a bool value.
 
 # tools
 Currently `neo-express` is the only tool that supports downloading contracts. An [issue](https://github.com/nspcc-dev/neo-go/issues/2406) exists for `neo-go` to add download support.
