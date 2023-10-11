@@ -11,7 +11,6 @@ It has 4 major sections which will be described in detail later on
 
 # defaults
 * `contract-source-network` - describes which network is the source for downloading contracts from. Valid values are [networks.label](#Networks)s.
-* `contract-destination` - describe where the downloaded contract should be persisted. Valid values are [contract-destination](#contract-destination) keys.
 * `contract-download` - set to `true` to download all [contracts](#contracts) to your local chain.
 * `contract-generate-sdk` - set to `true` to generate SDKs for all [contracts](#contracts).
 * `on-chain` - describes settings for generating SDKs for use in on chain contracts. See [GenerateConfig](#GenerateConfig).
