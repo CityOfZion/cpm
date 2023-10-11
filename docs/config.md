@@ -1,5 +1,7 @@
 `cpm.yaml` is your project configuration file. It holds all information about which contracts it should download,
-from which network and whether it should generate an SDK that can quickly be consumed in the smart contract you're developing.
+from which network and whether it should generate an SDK. Depending on the SDK type generated it allows it to either be
+consumed in the smart contract you're developing (=on-chain), or to be consumed in some backend to interact with the smart
+contract you developed once deployed (=off-chain).
 
 It has 4 major sections which will be described in detail later on
 * `defaults` - this section holds settings that apply to all contracts unless explicitly overridden in the `contracts` section.
@@ -11,11 +13,14 @@ It has 4 major sections which will be described in detail later on
 * `contract-source-network` - describes which network is the source for downloading contracts from. Valid values are [networks.label](#Networks)s.
 * `contract-destination` - describe where the downloaded contract should be persisted. Valid values are [contract-destination](#contract-destination) keys.
 * `contract-generate-sdk` - set to `true` to generate SDKs based on the contract manifest that can be consumed in your smart contract.
-git d* `on-chain` - describes settings for generating SDKs for on chain contracts. See [GenerateConfig](#GenerateConfig)
+* `on-chain` - describes settings for generating SDKs for use in on chain contracts. See [GenerateConfig](#GenerateConfig)
+* `off-chain` - describes settings for generating off-chain SDKs to interact with on chain contracts. See [GenerateConfig](#GenerateConfig)
 
 
 ## GenerateConfig
-* `languages` - a list of target languages to generate the SDK in. Valid values: `csharp`, `go`, `java` and `python`.
+* `languages` - a list of target languages to generate the SDK in. 
+   * Valid values for `on-chain`: `csharp`, `go`, `java` and `python`.
+   * Valid values for `off-chain`: `ts` and `python`.
 * `destinations` - override default output path per language. Example
 ```yaml
   on-chain:
@@ -25,6 +30,11 @@ git d* `on-chain` - describes settings for generating SDKs for on chain contract
     destinations:
       python: custom_out_py
       go: custom_out_go
+  off-chain:
+    languages:
+      - ts
+    destinations:
+      ts: custom_out_ts
 ```
 
 # contracts
