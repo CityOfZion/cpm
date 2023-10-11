@@ -4,7 +4,7 @@ import (
 	"cpm/generators"
 	_ "embed"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -82,7 +82,7 @@ func LoadConfig() {
 	}
 	defer f.Close()
 
-	yamlData, _ := ioutil.ReadAll(f)
+	yamlData, _ := io.ReadAll(f)
 	if err := yaml.Unmarshal(yamlData, &cfg); err != nil {
 		log.Fatal(fmt.Errorf("failed to parse config file: %w", err))
 	}
