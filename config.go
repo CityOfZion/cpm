@@ -91,7 +91,7 @@ func LoadConfig() {
 
 func CreateDefaultConfig() {
 	if _, err := os.Stat(DEFAULT_CONFIG_FILE); os.IsNotExist(err) {
-		err = ioutil.WriteFile(DEFAULT_CONFIG_FILE, defaultConfig, 0644)
+		err = os.WriteFile(DEFAULT_CONFIG_FILE, defaultConfig, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -129,7 +129,7 @@ func (c *CPMConfig) getSdkDestination(forLanguage string, sdkType string) string
 	}
 
 	var sdkTypePath SdkDestination
-	if sdkType == generators.SDK_ONCHAIN {
+	if sdkType == generators.SDKOnChain {
 		if c.Defaults.OnChain == nil {
 			return defaultLocation
 		}
