@@ -432,6 +432,7 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 	return generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: scriptHash, SdkDestination: dest}, language, sdkType)
 }
 
+// must fetch and generate an SDK. Must return an error if generation failed or nothing is generated
 func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 	m, err := fetchManifest(&c.ScriptHash, host)
 	if err != nil {
@@ -469,6 +470,12 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 			}
 		}
 	}
+
+	if onChainLanguages == nil && offChainLanguages == nil {
+		return fmt.Errorf("nothing to generate. Ensure your 'cpm.yaml' has an 'onchain' or 'offchain' key under " +
+			"the 'defaults' section or contract specific section with at least one language specified")
+	}
+
 	return nil
 }
 
