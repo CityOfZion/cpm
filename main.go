@@ -22,9 +22,6 @@ import (
 )
 
 var (
-	TOOL_NEO_GO      = "neo-go"
-	TOOL_NEO_EXPRESS = "neo-express"
-
 	LANG_GO         = "go"
 	LANG_PYTHON     = "python"
 	LANG_JAVA       = "java"
@@ -35,8 +32,6 @@ var (
 	LOG_DEBUG = "DEBUG"
 
 	DEFAULT_CONFIG_FILE = "cpm.yaml"
-	SDK_OFFCHAIN = "offchain"
-	SDK_ONCHAIN  = "onchain"
 
 	version = "dev"
 )
@@ -105,8 +100,8 @@ func main() {
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash", Required: true},
 							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.yaml for the network by label to find the host", Required: false},
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
-							&cli.StringFlag{Name: "i", Usage: "neo express config file", Required: false, DefaultText: "default.neo-express"},
-							&cli.BoolFlag{Name: "s", Usage: "save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
+							&cli.StringFlag{Name: "i", Usage: "Neo express config file", Required: false, DefaultText: "default.neo-express"},
+							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
 						},
 						Action: handleCliDownloadContract,
 					},
@@ -117,7 +112,7 @@ func main() {
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash", Required: true},
 							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.yaml for the network by label to find the host", Required: false},
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
-							&cli.BoolFlag{Name: "s", Usage: "save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
+							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
 						},
 						Action: handleCliDownloadManifest,
 					},
@@ -155,7 +150,7 @@ func main() {
 								Usage:    "SDK type",
 								Required: true,
 								Value: &EnumValue{
-									Enum: []string{generators.SDK_OFFCHAIN, generators.SDK_ONCHAIN},
+									Enum: []string{generators.SDKOffChain, generators.SDKOnChain},
 								},
 							},
 						},
@@ -417,9 +412,9 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 	sdkType := cCtx.String("t")
 	if sdkType == "" {
 		if language == LANG_TYPESCRIPT {
-			sdkType = generators.SDK_OFFCHAIN
+			sdkType = generators.SDKOffChain
 		} else {
-			sdkType = generators.SDK_ONCHAIN
+			sdkType = generators.SDKOnChain
 		}
 	}
 
@@ -462,7 +457,7 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 
 	if onChainLanguages != nil {
 		for _, l := range onChainLanguages {
-			err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l, generators.SDK_ONCHAIN)}, l, generators.SDK_ONCHAIN)
+			err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l, generators.SDKOnChain)}, l, generators.SDKOnChain)
 			if err != nil {
 				return err
 			}
@@ -478,7 +473,7 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 
 	if offChainLanguages != nil {
 		for _, l := range offChainLanguages {
-			err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l, generators.SDK_OFFCHAIN)}, l, generators.SDK_OFFCHAIN)
+			err = generateSDK(&generators.GenerateCfg{Manifest: m, ContractHash: c.ScriptHash, SdkDestination: cfg.getSdkDestination(l, generators.SDKOffChain)}, l, generators.SDKOffChain)
 			if err != nil {
 				return err
 			}

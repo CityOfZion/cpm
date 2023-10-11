@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	OutputRoot   = "cpm_out/"
-	SDK_OFFCHAIN = "offchain"
-	SDK_ONCHAIN  = "onchain"
+	OutputRoot  = "cpm_out/"
+	SDKOffChain = "offchain"
+	SDKOnChain  = "onchain"
 )
 
 // Big chunks of code gracefully borrowed from neo-go <3 with some adjustments
@@ -106,11 +106,11 @@ func TemplateFromManifest(cfg *GenerateCfg) (ContractTmpl, error) {
 			mtd.Arguments = append(mtd.Arguments, paramTmpl{
 				Name:    name,
 				Type:    typeStr,
-				TypeABI: (smartcontract.ParamType).String(method.Parameters[i].Type),
+				TypeABI: smartcontract.ParamType.String(method.Parameters[i].Type),
 			})
 		}
 		mtd.ReturnType = cfg.ParamTypeConverter(method.ReturnType)
-		mtd.ReturnTypeABI = (smartcontract.ParamType).String(method.ReturnType)
+		mtd.ReturnTypeABI = smartcontract.ParamType.String(method.ReturnType)
 		ctr.Methods = append(ctr.Methods, mtd)
 	}
 
