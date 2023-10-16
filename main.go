@@ -97,9 +97,26 @@ func main() {
 							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.yaml for the network by label to find the host", Required: false},
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
 							&cli.StringFlag{Name: "i", Usage: "Neo express config file", Required: false, DefaultText: "default.neo-express"},
-							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
+							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: false, DisableDefaultText: true},
 						},
-						Action: handleCliDownloadContract,
+						Action: func(cCtx *cli.Context) error {
+							networkLabel := cCtx.String("n")
+							networkHost := cCtx.String("N")
+							contractHash := cCtx.String("c")
+							configPath := cCtx.String("i")
+							saveContract := cCtx.Bool("s")
+
+							LoadConfig()
+							hosts, err := getHosts(networkLabel, networkHost)
+							if err != nil {
+								return err
+							}
+
+							// for now, we only support NeoExpress
+							downloader := NewNeoExpressDownloader(configPath)
+
+							return handleCliDownloadContract(hosts, contractHash, downloader, saveContract, false)
+						},
 					},
 					{
 						Name:  "manifest",
@@ -268,44 +285,19 @@ func handleCliRun(cCtx *cli.Context) error {
 	return nil
 }
 
-func handleCliDownloadContract(cCtx *cli.Context) error {
-	networkLabel := cCtx.String("n")
-	networkHost := cCtx.String("N")
-
-	if networkLabel != "" && networkHost != "" {
-		log.Fatal("-n and -N flags are mutually exclusive")
-	}
-
-	LoadConfig()
-
-	var hosts []string
-	if len(networkLabel) > 0 {
-		hosts = cfg.getHosts(networkLabel)
-	} else if len(networkHost) > 0 {
-		// TODO: sanity check value
-		hosts = []string{networkHost}
-	} else {
-		log.Fatal("Must specify either -n or -N flag")
-	}
-
-	var (
-		scriptHash util.Uint160
-		downloader Downloader
-	)
-
-	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
+// 'cfg' is expected to be initialized
+func handleCliDownloadContract(hosts []string, contractHash string, downloader Downloader, saveContract, testing bool) error {
+	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(contractHash, "0x"))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to convert script hash: %v", err)
 	}
-	cfg.addContract("unknown", scriptHash)
 
-	// for now, we only support NeoExpress
-	configPath := cfg.Tools.NeoExpress.ConfigPath
-	tmp := cCtx.String("i")
-	if len(tmp) > 0 {
-		configPath = tmp
+	if saveContract {
+		cfg.addContract("unknown", scriptHash)
+		if !testing {
+			cfg.saveToDisk()
+		}
 	}
-	downloader = NewNeoExpressDownloader(configPath)
 
 	success := false
 	for _, host := range hosts {
@@ -321,7 +313,7 @@ func handleCliDownloadContract(cCtx *cli.Context) error {
 	}
 
 	if !success {
-		log.Fatalf("Failed to download contract %s. Use '--log-level DEBUG' for more information", scriptHash)
+		return fmt.Errorf("failed to download contract %s. Use '--log-level DEBUG' for more information", scriptHash)
 	}
 	return nil
 }
@@ -525,4 +517,21 @@ func generateSDK(cfg *generators.GenerateCfg, language, sdkType string) error {
 		return err
 	}
 	return nil
+}
+
+func getHosts(networkLabel, networkHost string) ([]string, error) {
+	if networkLabel != "" && networkHost != "" {
+		return nil, fmt.Errorf("-n and -N flags are mutually exclusive")
+	}
+
+	var hosts []string
+	if len(networkLabel) > 0 {
+		hosts = cfg.getHosts(networkLabel)
+	} else if len(networkHost) > 0 {
+		// TODO: sanity check value
+		hosts = []string{networkHost}
+	} else {
+		return nil, fmt.Errorf("must specify either -n or -N flag")
+	}
+	return hosts, nil
 }
