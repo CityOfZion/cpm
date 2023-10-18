@@ -42,29 +42,29 @@ nfpms:
       - deb
       - rpm
       - archlinux
-#chocolateys:
-#  -
-#    project_url: https://github.com/CityOfZion/cpm
-#    copyright: 2022 COZ Inc
-#    license_url: https://github.com/CityOfZion/cpm/blob/master/LICENSE
-#    require_license_acceptance: false
-#    project_source_url: https://github.com/CityOfZion/cpm
-#    docs_url: https://github.com/CityOfZion/cpm/blob/main/README.md
-#    bug_tracker_url: https://github.com/CityOfZion/cpm/issues
-#    summary: NEO Blockchain Contract Package Manager
-#
-#    description: |
-#      {{ .ProjectName }} installer package.
-#      Download selected contracts from a chain to your local chain for development purposes.
-#      Generate SDKs for selected contracts to work with.
-#
-#    api_key: '{{ .Env.CHOCOLATEY_API_KEY }}'
-#    source_repo: "https://push.chocolatey.org/"
-#
-#    # Setting this will prevent goreleaser to actually try to push the package
-#    # to chocolatey repository, leaving the responsability of publishing it to
-#    # the user.
-#    skip_publish: false
+chocolateys:
+  -
+    name: cpm
+    owners: COZ
+    title: Contract Package Manager 
+    authors: Erik van den Brink
+    project_url: https://github.com/CityOfZion/cpm
+    url_template: "https://github.com/CityOfZion/cpm/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    copyright: 2023 COZ
+    require_license_acceptance: false
+    project_source_url: https://github.com/CityOfZion/cpm
+    docs_url: https://github.com/CityOfZion/cpm/blob/master/README.md
+    bug_tracker_url: https://github.com/CityOfZion/cpm/issues
+    tags: 'neo neo3 blockchain contract package-manager manager sdk golang csharp python java typescript ts'
+    summary: NEO Blockchain Contract Package Manager
+    description:  |
+      {{ .ProjectName }} installer package.
+      Download selected contracts from a chain to your local chain for development purposes.
+      Generate SDKs for selected contracts to work with.
+    release_notes: "https://github.com/CityOfZion/cpm/releases/tag/v{{ .Version }}"
+    api_key: '{{ .Env.CHOCOLATEY_API_KEY }}'
+    source_repo: "https://push.chocolatey.org/"
+    skip_publish: false
 
 # Github release
 release:
