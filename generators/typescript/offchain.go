@@ -78,12 +78,12 @@ const typescriptSrcClassTmpl = `
 			signers: [],
 		})
 
-		if (res.stack.length !== 0 && res.session !== undefined && typeChecker.isStackTypeInteropInterface(res.stack[0])) {
+		if (res.stack.length !== 0 && res.session !== undefined && TypeChecker.isStackTypeInteropInterface(res.stack[0])) {
 
 			let iterator = await this.config.invoker.traverseIterator(res.session, res.stack[0].id, itemsPerRequest)
 
 			while (iterator.length !== 0){
-				if (typeChecker.isStackTypeInteropInterface(iterator[0])){
+				if (TypeChecker.isStackTypeInteropInterface(iterator[0])){
 					throw new Error(res.exception ?? 'can not have an iterator inside another iterator')
 				}else{
 					const iteratorValues = iterator.map((item) => {
@@ -147,8 +147,7 @@ const typescriptSrcClassTmpl = `
 		this.config.eventListener.removeEventListener(this.config.scriptHash, '{{ .Name }}', callback)
 	}
 {{- end -}}
-import { Neo3EventListener, Neo3EventListenerCallback, Neo3Invoker, Neo3Parser } from "@cityofzion/neon-dappkit-types"
-import { typeChecker } from "@cityofzion/neon-dappkit"
+import { Neo3EventListener, Neo3EventListenerCallback, Neo3Invoker, Neo3Parser, TypeChecker } from "@cityofzion/neon-dappkit-types"
 import * as Invocation from './api'
 
 export type SmartContractConfig = {
