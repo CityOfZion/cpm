@@ -24,7 +24,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GH_HOMEBREW_TAP }}
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}

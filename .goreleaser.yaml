@@ -74,7 +74,7 @@ release:
 # OSX homebrew tap
 brews:
   -
-    tap:
+    repository:
       owner: CityOfZion
       name: homebrew-tap
     homepage: https://github.com/CityOfZion/cpm
