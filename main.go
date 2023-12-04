@@ -127,7 +127,20 @@ func main() {
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
 							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
 						},
-						Action: handleCliDownloadManifest,
+						Action: func(cCtx *cli.Context) error {
+							networkLabel := cCtx.String("n")
+							networkHost := cCtx.String("N")
+							contractHash := cCtx.String("c")
+							saveContract := cCtx.Bool("s")
+
+							LoadConfig()
+							hosts, err := getHosts(networkLabel, networkHost)
+							if err != nil {
+								return err
+							}
+
+							return handleCliDownloadManifest(hosts, contractHash, saveContract, false)
+						},
 					},
 				},
 			},
@@ -318,33 +331,16 @@ func handleCliDownloadContract(hosts []string, contractHash string, downloader D
 	return nil
 }
 
-func handleCliDownloadManifest(cCtx *cli.Context) error {
-	networkLabel := cCtx.String("n")
-	networkHost := cCtx.String("N")
-
-	if networkLabel != "" && networkHost != "" {
-		log.Fatal("-n and -N flags are mutually exclusive")
-	}
-
-	var hosts []string
-	if len(networkLabel) > 0 {
-		LoadConfig()
-		hosts = cfg.getHosts(networkLabel)
-	} else if len(networkHost) > 0 {
-		// TODO: sanity check value
-		hosts = []string{networkHost}
-	} else {
-		log.Fatal("Must specify either -n or -N flag")
-	}
-
-	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(cCtx.String("c"), "0x"))
+func handleCliDownloadManifest(hosts []string, contractHash string, saveContract, testing bool) error {
+	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(contractHash, "0x"))
 	if err != nil {
-		log.Fatalf("failed to convert script hash: %v", err)
+		return fmt.Errorf("failed to convert script hash: %v", err)
 	}
 
 	for _, host := range hosts {
 		m, err := fetchManifest(&scriptHash, host)
 		if err != nil {
+			log.Debug(err)
 			continue
 		} else {
 			f, err := os.Create("contract.manifest.json")
@@ -363,18 +359,17 @@ func handleCliDownloadManifest(cCtx *cli.Context) error {
 			}
 			log.Info("Written manifest to contract.manifest.json")
 
-			if save := cCtx.Bool("s"); save {
-				if cfg == nil {
-					LoadConfig()
-				}
+			if saveContract {
 				cfg.addContract(m.Name, scriptHash)
+				if !testing {
+					cfg.saveToDisk()
+				}
 			}
+
 			return nil
 		}
 	}
-
-	log.Fatalf("Failed to fetch manifest. Use '--log-level DEBUG' for more information")
-	return err
+	return fmt.Errorf("failed to fetch manifest. Use '--log-level DEBUG' for more information")
 }
 
 func handleCliGenerate(cCtx *cli.Context, language string) error {
@@ -465,16 +460,19 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 func fetchManifest(scriptHash *util.Uint160, host string) (*manifest.Manifest, error) {
 	opts := rpcclient.Options{}
 	client, err := rpcclient.New(context.TODO(), host, opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create RPC client: %v", err)
+	}
+
 	err = client.Init()
 	if err != nil {
-		log.Debug("RPCClient init failed with %v", err)
-		return nil, err
+		return nil, fmt.Errorf("RPCClient init failed with: %v", err)
 	}
+
 	log.Debugf("Attempting to fetch manifest for contract '%s' using %s", scriptHash.StringLE(), host)
 	state, err := client.GetContractStateByHash(*scriptHash)
 	if err != nil {
-		log.Debug("get contractstate failed with %v", err)
-		return nil, err
+		return nil, fmt.Errorf("getcontractstate failed with: %v", err)
 	}
 	return &state.Manifest, nil
 }
