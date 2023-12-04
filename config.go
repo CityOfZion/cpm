@@ -120,7 +120,6 @@ func (c *CPMConfig) addContract(label string, scriptHash util.Uint160) {
 		}
 	}
 	cfg.Contracts = append(cfg.Contracts, ContractConfig{Label: label, ScriptHash: scriptHash})
-	saveConfig()
 }
 
 func (c *CPMConfig) getHosts(networkLabel string) []string {
@@ -184,7 +183,7 @@ func (c *CPMConfig) getSdkDestination(forLanguage string, sdkType string) string
 	}
 }
 
-func saveConfig() {
+func (c *CPMConfig) saveToDisk() {
 	f, err := os.Create(DEFAULT_CONFIG_FILE)
 	if err != nil {
 		log.Fatal(err)
