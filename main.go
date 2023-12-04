@@ -99,24 +99,7 @@ func main() {
 							&cli.StringFlag{Name: "i", Usage: "Neo express config file", Required: false, DefaultText: "default.neo-express"},
 							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: false, DisableDefaultText: true},
 						},
-						Action: func(cCtx *cli.Context) error {
-							networkLabel := cCtx.String("n")
-							networkHost := cCtx.String("N")
-							contractHash := cCtx.String("c")
-							configPath := cCtx.String("i")
-							saveContract := cCtx.Bool("s")
-
-							LoadConfig()
-							hosts, err := getHosts(networkLabel, networkHost)
-							if err != nil {
-								return err
-							}
-
-							// for now, we only support NeoExpress
-							downloader := NewNeoExpressDownloader(configPath)
-
-							return handleCliDownloadContract(hosts, contractHash, downloader, saveContract, false)
-						},
+						Action: handleCliDownloadContract,
 					},
 					{
 						Name:  "manifest",
@@ -127,20 +110,7 @@ func main() {
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
 							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
 						},
-						Action: func(cCtx *cli.Context) error {
-							networkLabel := cCtx.String("n")
-							networkHost := cCtx.String("N")
-							contractHash := cCtx.String("c")
-							saveContract := cCtx.Bool("s")
-
-							LoadConfig()
-							hosts, err := getHosts(networkLabel, networkHost)
-							if err != nil {
-								return err
-							}
-
-							return handleCliDownloadManifest(hosts, contractHash, saveContract, false)
-						},
+						Action: handleCliDownloadManifest,
 					},
 				},
 			},
@@ -298,78 +268,36 @@ func handleCliRun(cCtx *cli.Context) error {
 	return nil
 }
 
-// 'cfg' is expected to be initialized
-func handleCliDownloadContract(hosts []string, contractHash string, downloader Downloader, saveContract, testing bool) error {
-	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(contractHash, "0x"))
+func handleCliDownloadContract(cCtx *cli.Context) error {
+	networkLabel := cCtx.String("n")
+	networkHost := cCtx.String("N")
+	contractHash := cCtx.String("c")
+	configPath := cCtx.String("i")
+	saveContract := cCtx.Bool("s")
+
+	LoadConfig()
+	hosts, err := getHosts(networkLabel, networkHost)
 	if err != nil {
-		return fmt.Errorf("failed to convert script hash: %v", err)
+		return err
 	}
 
-	if saveContract {
-		cfg.addContract("unknown", scriptHash)
-		if !testing {
-			cfg.saveToDisk()
-		}
-	}
-
-	success := false
-	for _, host := range hosts {
-		message, err := downloader.downloadContract(scriptHash, host)
-		if err != nil {
-			// just log the error we got from the downloader and try the next host
-			log.Debug(message)
-		} else {
-			log.Info(message)
-			success = true
-			break
-		}
-	}
-
-	if !success {
-		return fmt.Errorf("failed to download contract %s. Use '--log-level DEBUG' for more information", scriptHash)
-	}
-	return nil
+	// for now, we only support NeoExpress
+	downloader := NewNeoExpressDownloader(configPath)
+	return downloadContract(hosts, contractHash, downloader, saveContract, false)
 }
 
-func handleCliDownloadManifest(hosts []string, contractHash string, saveContract, testing bool) error {
-	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(contractHash, "0x"))
+func handleCliDownloadManifest(cCtx *cli.Context) error {
+	networkLabel := cCtx.String("n")
+	networkHost := cCtx.String("N")
+	contractHash := cCtx.String("c")
+	saveContract := cCtx.Bool("s")
+
+	LoadConfig()
+	hosts, err := getHosts(networkLabel, networkHost)
 	if err != nil {
-		return fmt.Errorf("failed to convert script hash: %v", err)
+		return err
 	}
-
-	for _, host := range hosts {
-		m, err := fetchManifest(&scriptHash, host)
-		if err != nil {
-			log.Debug(err)
-			continue
-		} else {
-			f, err := os.Create("contract.manifest.json")
-			if err != nil {
-				return err
-			}
-
-			out, err := json.MarshalIndent(m, "", "   ")
-			if err != nil {
-				return err
-			}
-
-			_, err = f.Write(out)
-			if err != nil {
-				return err
-			}
-			log.Info("Written manifest to contract.manifest.json")
-
-			if saveContract {
-				cfg.addContract(m.Name, scriptHash)
-				if !testing {
-					cfg.saveToDisk()
-				}
-			}
-
-			return nil
-		}
-	}
-	return fmt.Errorf("failed to fetch manifest. Use '--log-level DEBUG' for more information")
+	return downloadManifest(hosts, contractHash, saveContract, false)
 }
 
 func handleCliGenerate(cCtx *cli.Context, language string) error {
@@ -408,6 +336,80 @@ func handleCliGenerate(cCtx *cli.Context, language string) error {
 func handleCliVersion(cCtx *cli.Context) error {
 	fmt.Printf("cpm %s\n", version)
 	return nil
+}
+
+// 'cfg' is expected to be initialized
+func downloadContract(hosts []string, contractHash string, downloader Downloader, saveContract, testing bool) error {
+	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(contractHash, "0x"))
+	if err != nil {
+		return fmt.Errorf("failed to convert script hash: %v", err)
+	}
+
+	if saveContract {
+		cfg.addContract("unknown", scriptHash)
+		if !testing {
+			cfg.saveToDisk()
+		}
+	}
+
+	success := false
+	for _, host := range hosts {
+		message, err := downloader.downloadContract(scriptHash, host)
+		if err != nil {
+			// just log the error we got from the downloader and try the next host
+			log.Debug(message)
+		} else {
+			log.Info(message)
+			success = true
+			break
+		}
+	}
+
+	if !success {
+		return fmt.Errorf("failed to download contract %s. Use '--log-level DEBUG' for more information", scriptHash)
+	}
+	return nil
+}
+
+func downloadManifest(hosts []string, contractHash string, saveContract, testing bool) error {
+	scriptHash, err := util.Uint160DecodeStringLE(strings.TrimPrefix(contractHash, "0x"))
+	if err != nil {
+		return fmt.Errorf("failed to convert script hash: %v", err)
+	}
+
+	for _, host := range hosts {
+		m, err := fetchManifest(&scriptHash, host)
+		if err != nil {
+			log.Debug(err)
+			continue
+		} else {
+			f, err := os.Create("contract.manifest.json")
+			if err != nil {
+				return err
+			}
+
+			out, err := json.MarshalIndent(m, "", "   ")
+			if err != nil {
+				return err
+			}
+
+			_, err = f.Write(out)
+			if err != nil {
+				return err
+			}
+			log.Info("Written manifest to contract.manifest.json")
+
+			if saveContract {
+				cfg.addContract(m.Name, scriptHash)
+				if !testing {
+					cfg.saveToDisk()
+				}
+			}
+
+			return nil
+		}
+	}
+	return fmt.Errorf("failed to fetch manifest. Use '--log-level DEBUG' for more information")
 }
 
 // must fetch and generate an SDK. Must return an error if generation failed or nothing is generated

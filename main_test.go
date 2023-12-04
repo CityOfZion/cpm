@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_handleCliDownloadContract(t *testing.T) {
+func Test_DownloadContract(t *testing.T) {
 	log.SetLevel(log.WarnLevel)
 	t.Cleanup(func() { log.SetOutput(os.Stderr) })
 
@@ -25,7 +25,7 @@ func Test_handleCliDownloadContract(t *testing.T) {
 	h := []string{"127.0.0.1:10333"}
 
 	t.Run("invalid contract hash should fail", func(t *testing.T) {
-		err := handleCliDownloadContract(nil, "invalidhash", nil, false, true)
+		err := downloadContract(nil, "invalidhash", nil, false, true)
 		require.Error(t, err)
 
 		expected := "failed to convert script hash"
@@ -33,7 +33,7 @@ func Test_handleCliDownloadContract(t *testing.T) {
 	})
 
 	t.Run("should download and save contract to config", func(t *testing.T) {
-		err := handleCliDownloadContract(h, c.StringLE(), NewOkDownloader(), true, true)
+		err := downloadContract(h, c.StringLE(), NewOkDownloader(), true, true)
 		require.NoError(t, err)
 
 		// test if contract is added
@@ -54,7 +54,7 @@ func Test_handleCliDownloadContract(t *testing.T) {
 
 		downloader := NewMockDownloader([]bool{false, true})
 
-		err := handleCliDownloadContract(hosts, c.StringLE(), &downloader, false, true)
+		err := downloadContract(hosts, c.StringLE(), &downloader, false, true)
 		require.NoErrorf(t, err, "expected download to succeed for %s", successHost)
 
 		if assert.Greater(t, logs.Len(), 1) {
@@ -67,7 +67,7 @@ func Test_handleCliDownloadContract(t *testing.T) {
 		logs := NewMockLogs(t)
 		downloader := NewMockDownloader([]bool{false})
 
-		err := handleCliDownloadContract(h, c.StringLE(), &downloader, false, true)
+		err := downloadContract(h, c.StringLE(), &downloader, false, true)
 		require.Error(t, err)
 		if assert.Equal(t, logs.Len(), 1) {
 			assert.Contains(t, logs.lines[0], downloader.responseMsg[0])
@@ -75,14 +75,14 @@ func Test_handleCliDownloadContract(t *testing.T) {
 	})
 }
 
-func Test_handleCliDownloadManifest(t *testing.T) {
+func Test_DownloadManifest(t *testing.T) {
 	log.SetLevel(log.WarnLevel)
 	t.Cleanup(func() { log.SetOutput(os.Stderr) })
 
 	c := util.Uint160{}
 
 	t.Run("invalid contract hash should fail", func(t *testing.T) {
-		err := handleCliDownloadManifest(nil, "invalidhash", false, true)
+		err := downloadManifest(nil, "invalidhash", false, true)
 		require.Error(t, err)
 
 		expected := "failed to convert script hash"
@@ -102,7 +102,7 @@ func Test_handleCliDownloadManifest(t *testing.T) {
 		successHost := fmt.Sprintf("http://%s", srv.Listener.Addr().String())
 		hosts := []string{failHost, successHost}
 
-		err := handleCliDownloadManifest(hosts, c.StringLE(), false, true)
+		err := downloadManifest(hosts, c.StringLE(), false, true)
 		require.NoError(t, err)
 
 		if assert.GreaterOrEqual(t, logs.Len(), 3) {
@@ -124,7 +124,7 @@ func Test_handleCliDownloadManifest(t *testing.T) {
 		defer srv.Close()
 
 		successHost := fmt.Sprintf("http://%s", srv.Listener.Addr().String())
-		err := handleCliDownloadManifest([]string{successHost}, c.StringLE(), false, true)
+		err := downloadManifest([]string{successHost}, c.StringLE(), false, true)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to fetch manifest")
 
