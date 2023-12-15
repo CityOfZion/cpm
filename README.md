@@ -1,3 +1,18 @@
+<p align="center">
+  <img
+    src="/.github/resources/images/logo.svg"
+    width="400px;">
+</p>
+
+CPM
+---
+A commandline tool for developing and interacting with smart contracts that 
+* can download 3rd party smart contracts and state from your target network (e.g. MainNet) to your neo-express network to
+replicate a realistic test environment.
+* can generate on-chain and off-chain SDKs based of the smart contract manifest for C#, Golang, Java, Python & TS
+  (see the CLI help for details).
+
+
 # Installation
 Download the binary from the releases page and place it somewhere on your path, or 
 
