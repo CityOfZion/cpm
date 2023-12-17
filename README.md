@@ -16,9 +16,14 @@ create a realistic test environment.
 # Installation
 Download the binary from the releases page and place it somewhere on your path, or 
 
-## OSX
+## OSX (brew)
 ```shell
 brew install CityOfZion/tap/cpm
+```
+
+## Windows (Chocolatey)
+```shell
+choco install cpm
 ```
 
 # Usage
