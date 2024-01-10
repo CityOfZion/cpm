@@ -50,8 +50,3 @@ chocolateys:
     api_key: '{{ .Env.CHOCOLATEY_API_KEY }}'
     source_repo: "https://push.chocolatey.org/"
     skip_publish: false
-
-# Github release
-release:
-  draft: true
-  replace_existing_draft: false

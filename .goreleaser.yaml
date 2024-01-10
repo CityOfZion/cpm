@@ -40,11 +40,6 @@ nfpms:
       - rpm
       - archlinux
 
-# Github release
-release:
-  draft: true
-  replace_existing_draft: false
-
 # OSX homebrew tap
 brews:
   -
