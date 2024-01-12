@@ -161,6 +161,14 @@ func main() {
 							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
 							&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
+							&cli.GenericFlag{
+								Name:     "t",
+								Usage:    "SDK type",
+								Required: true,
+								Value: &EnumValue{
+									Enum: []string{generators.SDKOffChain, generators.SDKOnChain},
+								},
+							},
 						},
 					},
 					{
@@ -502,7 +510,7 @@ func generateSDK(cfg *generators.GenerateCfg, language, sdkType string) error {
 	if language == LANG_PYTHON {
 		err = python.GenerateSDK(cfg, sdkType)
 	} else if language == LANG_JAVA {
-		err = java.GenerateJavaSDK(cfg)
+		err = java.GenerateSDK(cfg, sdkType)
 	} else if language == LANG_CSHARP {
 		err = csharp.GenerateCsharpSDK(cfg)
 	} else if language == LANG_GO {

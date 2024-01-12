@@ -39,7 +39,7 @@ public class {{ .ContractName }} extends ContractInterface {
 }
 `
 
-func GenerateJavaSDK(cfg *generators.GenerateCfg) error {
+func generateOnchainSDK(cfg *generators.GenerateCfg) error {
 	err := createJavaPackage(cfg)
 	defer cfg.ContractOutput.Close()
 	if err != nil {
