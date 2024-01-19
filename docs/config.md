@@ -20,7 +20,7 @@ It has 4 major sections which will be described in detail later on
 ## GenerateConfig
 * `languages` - a list of target languages to generate the SDK in. 
    * Valid values for `on-chain`: `csharp`, `go`, `java` and `python`.
-   * Valid values for `off-chain`: `ts` and `python`.
+   * Valid values for `off-chain`: `java`, `ts` and `python`.
 * `destinations` - override default output path per language. Example
 ```yaml
   on-chain:
@@ -46,7 +46,7 @@ It has 4 major sections which will be described in detail later on
 
 # tools
 Currently `neo-express` is the only tool that supports downloading contracts. An [issue](https://github.com/nspcc-dev/neo-go/issues/2406) exists for `neo-go` to add download support.
-For on-chain SDK generation `C#`, `Java`, `Golang` and `Python` are supported. For off-chain SDK generation `ts` and `Python` are supported.
+For on-chain SDK generation `C#`, `Java`, `Golang` and `Python` are supported. For off-chain SDK generation `Java`, `ts` and `Python` are supported.
 
 Each tool must specify the following 2 keys
 * `canGenerateSDK` - indicates if the tool can be used for generating SDKs. Must be a bool value.

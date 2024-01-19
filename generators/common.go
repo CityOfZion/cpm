@@ -22,12 +22,13 @@ const (
 
 type (
 	GenerateCfg struct {
-		Manifest            *manifest.Manifest
-		ContractHash        util.Uint160
-		ContractOutput      *os.File
-		ParamTypeConverter  convertParam
-		MethodNameConverter func(s string) string
-		SdkDestination      string
+		Manifest              *manifest.Manifest
+		ContractHash          util.Uint160
+		ContractOutput        *os.File
+		ParamTypeConverter    convertParam
+		MethodNameConverter   func(s string) string
+		SdkDestination        string
+		SupportMethodOverload bool
 	}
 
 	ContractTmpl struct {
@@ -80,12 +81,15 @@ func TemplateFromManifest(cfg *GenerateCfg) (ContractTmpl, error) {
 		}
 
 		name := method.Name
-		if v, ok := seen[name]; !ok || v {
-			suffix := strconv.Itoa(len(method.Parameters))
-			for ; seen[name]; name = method.Name + suffix {
-				suffix = "_" + suffix
+		if !cfg.SupportMethodOverload {
+			if v, ok := seen[name]; !ok || v {
+				suffix := strconv.Itoa(len(method.Parameters))
+				for ; seen[name]; name = method.Name + suffix {
+					suffix = "_" + suffix
+				}
 			}
 		}
+
 		seen[name] = true
 
 		mtd := methodTmpl{
