@@ -27,8 +27,16 @@ jobs:
           args: release --clean --config .goreleaser.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GH_HOMEBREW_TAP }}
+      - uses: actions/cache@v3
+        env:
+          cache-name: cpm-dist
+        with:
+          path: ./dist
+          enableCrossOsArchive: true
+          key: dist-unix
   goreleaser-windows:
     runs-on: windows-latest
+    needs: goreleaser-unix
     steps:
       - uses: actions/checkout@v3
         with:
@@ -46,3 +54,47 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+      - uses: actions/cache@v3
+        env:
+          cache-name: cpm-dist
+        with:
+          path: ./dist
+          enableCrossOsArchive: true
+          key: dist-windows
+  merge-dist:
+    runs-on: ubuntu-latest
+    needs: goreleaser-windows
+    steps:
+      - name: restore Unix dist cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cpm-dist
+        with:
+          path: ./dist
+          enableCrossOsArchive: true
+          key: dist-unix
+          restore-keys: |
+            dist-unix
+      - name: restore Windows dist cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cpm-dist
+        with:
+          path: ./dist
+          enableCrossOsArchive: true
+          key: dist-windows
+          restore-keys: |
+            dist-windows
+      - name: Remove unnecessary files before release
+        run: |
+          ls -la ./dist
+          rm -rf ./dist/*/
+          rm ./dist/config.yaml
+          rm ./dist/metadata.json
+          rm ./dist/checksums.txt
+      - name: Create draft release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          name: Draft
+          files: ./dist/*.*
