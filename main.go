@@ -153,7 +153,7 @@ func main() {
 					},
 					{
 						Name:  LANG_JAVA,
-						Usage: "Generate an on-chain SDK for use with Java",
+						Usage: "Generate a SDK for use with Java",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_JAVA)
 						},
