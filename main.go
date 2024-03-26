@@ -121,7 +121,7 @@ func main() {
 				Subcommands: []*cli.Command{
 					{
 						Name:  LANG_GO,
-						Usage: "Generate an on-chain SDK for use with Golang",
+						Usage: "Generate a SDK for use with Golang",
 						Action: func(c *cli.Context) error {
 							return handleCliGenerate(c, LANG_GO)
 						},
@@ -129,6 +129,14 @@ func main() {
 							&cli.StringFlag{Name: "m", Usage: "Path to contract manifest.json", Required: true},
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash if known", Required: false},
 							&cli.StringFlag{Name: "o", Usage: "Output folder", Required: false},
+							&cli.GenericFlag{
+								Name:     "t",
+								Usage:    "SDK type",
+								Required: true,
+								Value: &EnumValue{
+									Enum: []string{generators.SDKOffChain, generators.SDKOnChain},
+								},
+							},
 						},
 					},
 					{
@@ -514,7 +522,7 @@ func generateSDK(cfg *generators.GenerateCfg, language, sdkType string) error {
 	} else if language == LANG_CSHARP {
 		err = csharp.GenerateCsharpSDK(cfg)
 	} else if language == LANG_GO {
-		err = golang.GenerateGoSDK(cfg)
+		err = golang.GenerateSDK(cfg, sdkType)
 	} else if language == LANG_TYPESCRIPT {
 		err = typescript.GenerateTypeScriptSDK(cfg)
 	} else {
