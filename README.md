@@ -51,7 +51,7 @@ cpm download manifest -c 0x4380f2c1de98bb267d3ea821897ec571a04fe3e0 -N https://m
 
 ### Build SDK from local manifest
 ```shell
-cpm generate python -m samplecontract.manifest.json
-cpm generate go -m samplecontract.manifest.json
+cpm generate python -m samplecontract.manifest.json -t offchain
+cpm generate go -m samplecontract.manifest.json -t onchain
 ```
-Note: all the SDKs are placed in `/cpm_out/` under a language specific folder i.e. `/cpm_out/python/<contract>` or `/cpm_out/golang/<contract>`
+Note: all the SDKs are placed in `/cpm_out/` under a SDK type and language specific folder i.e. `/cpm_out/offchain/python/<contract>` or `/cpm_out/onchain/golang/<contract>`
