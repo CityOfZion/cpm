@@ -18,7 +18,8 @@ const csharpSrcTmpl = `
           {{- .Type}} {{.Name}}
        {{- end}}) {
             return ({{.ReturnType}}) Contract.Call(ScriptHash, "{{.NameABI}}", CallFlags.All
-{{- range $arg := .Arguments -}}, {{ .Name -}} {{ else }}, new object[0]{{end}}); 
+{{- range $arg := .Arguments -}}, {{ .Name -}} {{ else }}, new object[0]{{end}});
+		} 
 {{- end -}}
 using Neo;
 using Neo.Cryptography.ECC;
@@ -36,7 +37,7 @@ namespace cpm {
         {{- range $m := .Methods}}
         {{ template "METHOD" $m -}}
         {{end}}
-   }
+    }
 }
 `
 
