@@ -60,7 +60,7 @@ const javaOffChainSrcTmpl = `
 		{{-  end }}
 	}
 {{- end -}}
-package <REPLACE ME>
+package <REPLACE ME>;
 
 import io.neow3j.contract.SmartContract;
 import io.neow3j.crypto.ECKeyPair;
