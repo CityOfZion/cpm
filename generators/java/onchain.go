@@ -14,12 +14,12 @@ import (
 
 const javaSrcTmpl = `
 {{- define "METHOD" }}
-    public native {{.ReturnType }} {{.Name}}({{range $index, $arg := .Arguments -}}
+    public native {{.ReturnType }} {{.NameABI}}({{range $index, $arg := .Arguments -}}
        {{- if ne $index 0}}, {{end}}
           {{- .Type}} {{.Name}}
        {{- end}});
 {{- end -}}
-package <REPLACE_ME>
+package <REPLACE_ME>;
 
 import io.neow3j.devpack.*;
 import io.neow3j.devpack.contracts.ContractInterface;
