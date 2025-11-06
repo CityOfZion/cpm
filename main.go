@@ -256,7 +256,7 @@ func handleCliRun(cCtx *cli.Context) error {
 			}
 
 			if !downloadSuccess {
-				log.Fatalf("Failed to download contract '%s' (%s). Use '--log-level DEBUG' for more information", c.Label, c.ScriptHash)
+				log.Fatalf("Failed to download contract '%s' (%s). Use '--log-level DEBUG' for more information", c.Label, c.ScriptHash.StringLE())
 			}
 		} else {
 			log.Debugf("Skipping contract download")
@@ -274,7 +274,7 @@ func handleCliRun(cCtx *cli.Context) error {
 			}
 
 			if !generateSuccess {
-				log.Fatalf("Failed to generate SDK for contract '%s' (%s). Use '--log-level DEBUG' for more information", c.Label, c.ScriptHash)
+				log.Fatalf("Failed to generate SDK for contract '%s' (%s). Use '--log-level DEBUG' for more information", c.Label, c.ScriptHash.StringLE())
 			}
 		} else {
 			log.Debugf("Skipping SDK generation")
