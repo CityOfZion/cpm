@@ -1,11 +1,12 @@
 package python
 
 import (
-	"cpm/generators"
 	"fmt"
 	"os"
 	"strings"
 	"text/template"
+
+	"cpm/generators"
 
 	"github.com/iancoleman/strcase"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract"
@@ -37,8 +38,8 @@ const pythonSrcTmpl = `
        {{- end}}) -> {{if .ReturnType }}{{ .ReturnType }}: {{ else }} None: {{ end }}
         pass
 {{- end -}}
-from boa3.builtin.type import UInt160, UInt256, ECPoint
-from boa3.builtin.compile_time import contract, display_name
+from boa3.sc.types import UInt160, UInt256, ECPoint
+from boa3.sc.compile_time import contract, display_name
 from typing import cast, Any
 
 
