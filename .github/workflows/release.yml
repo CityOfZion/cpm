@@ -92,6 +92,7 @@ jobs:
           rm ./dist/config.yaml
           rm ./dist/metadata.json
           rm ./dist/checksums.txt
+          rm ./dist/checksums_windows.txt
       - name: Create draft release
         uses: softprops/action-gh-release@v1
         with:

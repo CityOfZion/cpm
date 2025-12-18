@@ -1,4 +1,5 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
 project_name: cpm
 before:
   hooks:
@@ -15,11 +16,11 @@ builds:
       - amd64
       - arm64
 archives:
-  - format: zip
+  - formats: zip
 checksum:
-  name_template: 'checksums.txt'
+  name_template: 'checksums_windows.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
