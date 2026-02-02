@@ -2,17 +2,18 @@ package main
 
 import (
 	"context"
+	_ "embed"
+	"encoding/json"
+	"fmt"
+	"os"
+	"strings"
+
 	"cpm/generators"
 	"cpm/generators/csharp"
 	"cpm/generators/golang"
 	"cpm/generators/java"
 	"cpm/generators/python"
 	"cpm/generators/typescript"
-	_ "embed"
-	"encoding/json"
-	"fmt"
-	"os"
-	"strings"
 
 	"github.com/nspcc-dev/neo-go/pkg/rpcclient"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
@@ -108,7 +109,7 @@ func main() {
 							&cli.StringFlag{Name: "c", Usage: "Contract script hash", Required: true},
 							&cli.StringFlag{Name: "n", Usage: "Source network label. Searches cpm.yaml for the network by label to find the host", Required: false},
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
-							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: true, DisableDefaultText: true},
+							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: false, DisableDefaultText: true},
 						},
 						Action: handleCliDownloadManifest,
 					},
@@ -308,10 +309,16 @@ func handleCliDownloadManifest(cCtx *cli.Context) error {
 	contractHash := cCtx.String("c")
 	saveContract := cCtx.Bool("s")
 
-	LoadConfig()
-	hosts, err := getHosts(networkLabel, networkHost)
-	if err != nil {
-		return err
+	var hosts []string
+	var err error
+	if networkHost != "" && !saveContract {
+		hosts = []string{networkHost}
+	} else {
+		LoadConfig()
+		hosts, err = getHosts(networkLabel, networkHost)
+		if err != nil {
+			return err
+		}
 	}
 	return downloadManifest(hosts, contractHash, saveContract, false)
 }
