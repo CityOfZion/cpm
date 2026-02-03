@@ -111,6 +111,14 @@ func main() {
 							&cli.StringFlag{Name: "N", Usage: "Source network host", Required: false},
 							&cli.BoolFlag{Name: "s", Usage: "Save contract to the 'contracts' section of cpm.yaml", Required: false, Value: false, DisableDefaultText: true},
 						},
+						Before: func(c *cli.Context) error {
+							networkLabel := c.String("n")
+							networkHost := c.String("N")
+							if networkLabel == "" && networkHost == "" {
+								return fmt.Errorf("must to specify either a network label using '-n' or a network host using '-N'")
+							}
+							return nil
+						},
 						Action: handleCliDownloadManifest,
 					},
 				},
