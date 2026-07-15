@@ -1,10 +1,11 @@
 package main
 
 import (
-	"context"
+	"bytes"
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -15,7 +16,6 @@ import (
 	"cpm/generators/python"
 	"cpm/generators/typescript"
 
-	"github.com/nspcc-dev/neo-go/pkg/rpcclient"
 	"github.com/nspcc-dev/neo-go/pkg/smartcontract/manifest"
 	"github.com/nspcc-dev/neo-go/pkg/util"
 	log "github.com/sirupsen/logrus"
@@ -490,22 +490,53 @@ func fetchManifestAndGenerateSDK(c *ContractConfig, host string) error {
 	return nil
 }
 
+type jsonRPCRequest struct {
+	JSONRPC string `json:"jsonrpc"`
+	Method  string `json:"method"`
+	Params  []any  `json:"params"`
+	ID      int    `json:"id"`
+}
+
+type jsonRPCResponse struct {
+	Result json.RawMessage `json:"result"`
+	Error  *struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
 func fetchManifest(scriptHash *util.Uint160, host string) (*manifest.Manifest, error) {
-	opts := rpcclient.Options{}
-	client, err := rpcclient.New(context.TODO(), host, opts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create RPC client: %v", err)
-	}
-
-	err = client.Init()
-	if err != nil {
-		return nil, fmt.Errorf("RPCClient init failed with: %v", err)
-	}
-
 	log.Debugf("Attempting to fetch manifest for contract '%s' using %s", scriptHash.StringLE(), host)
-	state, err := client.GetContractStateByHash(*scriptHash)
+
+	reqBody, err := json.Marshal(jsonRPCRequest{
+		JSONRPC: "2.0",
+		Method:  "getcontractstate",
+		Params:  []any{scriptHash.StringLE()},
+		ID:      1,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("getcontractstate failed with: %v", err)
+		return nil, fmt.Errorf("failed to marshal RPC request: %v", err)
+	}
+
+	resp, err := http.Post(host, "application/json", bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to reach RPC host: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var rpcResp jsonRPCResponse
+	if err := json.NewDecoder(resp.Body).Decode(&rpcResp); err != nil {
+		return nil, fmt.Errorf("failed to decode RPC response: %v", err)
+	}
+	if rpcResp.Error != nil {
+		return nil, fmt.Errorf("getcontractstate failed with: %s", rpcResp.Error.Message)
+	}
+
+	var state struct {
+		Manifest manifest.Manifest `json:"manifest"`
+	}
+	if err := json.Unmarshal(rpcResp.Result, &state); err != nil {
+		return nil, fmt.Errorf("failed to decode contract state: %v", err)
 	}
 	return &state.Manifest, nil
 }
