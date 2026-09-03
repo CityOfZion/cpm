@@ -20,6 +20,8 @@ builds:
       - arm64
 checksum:
   name_template: 'checksums.txt'
+docker_digest:
+  disable: true
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 changelog:

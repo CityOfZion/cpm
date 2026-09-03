@@ -21,6 +21,8 @@ archives:
   - formats: zip
 checksum:
   name_template: 'checksums_windows.txt'
+docker_digest:
+  disable: true
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 changelog:
